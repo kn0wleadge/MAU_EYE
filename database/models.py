@@ -4,7 +4,6 @@ load_dotenv()
 from sqlalchemy import BigInteger, Integer, String,DateTime, ForeignKey
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.ext.asyncio import AsyncAttrs, async_sessionmaker, create_async_engine
-from sqlalchemy.ext.asyncio import AsyncAttrs, async_sessionmaker, create_async_engine
 from sqlalchemy import select, insert, update
 
 class Base(AsyncAttrs, DeclarativeBase):
@@ -27,13 +26,7 @@ async def async_main():
         #await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
 
-async def insert_post(text:str, url:str, parse_time:DateTime, group:str):
-    async with async_session() as session:
-        try:
-            await session.execute(insert(VkPostsRaw).values(ptext = text, purl = url, pparsetime = parse_time, pgroup = group))
-            await session.commit()
-        except Exception as e:
-            print(f'Error during insterting into VkPostsRaw - {e}')
+
 
 
 
