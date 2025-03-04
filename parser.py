@@ -1,5 +1,5 @@
 from dotenv import load_dotenv
-from sources import VK_PUBLICS
+from sources import VK_PUBLICS_NAMES, VK_PUBLICS_IDS
 load_dotenv()
 import requests
 import os
@@ -21,13 +21,15 @@ async def get_posts(domain, count):
 
 async def parse_vk(posts = 10):
     vk_posts = []
-    for group, domain in VK_PUBLICS.items():
+    for group, domain in VK_PUBLICS_NAMES.items():
         group_posts = await get_posts(domain,posts)
+        group_id = list(VK_PUBLICS_NAMES.keys())[list(VK_PUBLICS_NAMES.values()).index(domain)]
         for i in range(posts):
+            group_url = f"https://vk.com/{domain}?w=wall-{VK_PUBLICS_IDS[group]}_{str(group_posts[i]['id'])}"
             post_info = [
                 str(group_posts[i]["id"]),
                 group_posts[i]["text"],
-                "URL",
+                group_url,
                 str(group_posts[i]["date"]),
                 group
             ]
