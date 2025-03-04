@@ -23,8 +23,13 @@ from sources import VK_PUBLICS
 
 async def main():
     await async_main()
-    data = await parser.get_posts(VK_PUBLICS["murmansk"], 10)
-    print(data[0])
+    posts = await parser.parse_vk()
+    for post in posts:
+        await insert_post(id=int(post[0]),text=post[1],
+                        url=post[2],
+                        parse_time=datetime.datetime.fromtimestamp(int(post[3])),
+                        group=post[4]
+                        )
     #await insert_post("TEXT", "URL", datetime.datetime.now(),"GROUP")
 
 
@@ -33,5 +38,6 @@ if __name__ == '__main__':
     try:
         asyncio.run(main())
         
+
     except KeyboardInterrupt:
         print("interrupt")
