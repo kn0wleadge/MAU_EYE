@@ -5,7 +5,7 @@ import asyncio
 import os
 import datetime
 
-import parser
+import parser.vk_parser as vk_parser
 from database.models import async_main, async_session
 from database.queries import insert_post, get_post
 from sources import VK_PUBLICS_NAMES
@@ -23,7 +23,7 @@ from sources import VK_PUBLICS_NAMES
 
 async def main():
     await async_main()
-    posts = await parser.parse_vk()
+    posts = await vk_parser.parse_vk()
     for post in posts:
         time = int(post[3])
         await insert_post(id=int(post[0]),text=post[1],

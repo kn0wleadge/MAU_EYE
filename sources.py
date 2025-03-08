@@ -17,3 +17,20 @@ VK_PUBLICS_IDS = {
     'reginfo' : 158285273,
     'murmansk3' : 195569983
 }
+
+WEBSITES_URLS = {
+    'tv21': 'https://www.tv21.ru/news',
+    'mvestnik' : 'https://www.mvestnik.ru/newslent/',
+    'murman' : 'https://murman.tv/ct-n-2--news',
+    'vmurmansk' : 'https://vmnews.ru/novosti',
+}
+TGC_LINKS = {
+    'mvestnik' : 'https://t.me/vestnik51',
+    'arctobozrevatel' : 'https://t.me/AoMurmansk'
+}
+
+tv21_headers = {
+    "accept":"text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+    "user-agent" : "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 OPR/116.0.0.0 (Edition std-2)"
+
+}
