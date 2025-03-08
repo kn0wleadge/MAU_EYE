@@ -13,16 +13,28 @@ WEBSITES_URLS = {
     'murman' : 'https://murman.tv/ct-n-2--news',
     'vmurmansk' : 'https://vmnews.ru/novosti',
 }
-def parse_news(url:str, headers:dict):
-    r = requests.get(url, headers=headers)
-    return r
+def parse_tv21news_urls():
+    news_urls = []
+    r = requests.get(WEBSITES_URLS["tv21"], headers=tv21_headers)
+    response_text = r.text
+    news_container_start_index = response_text.find('<div class="news grid-1 js-news-container">')
+    news_container_end_index = response_text.find('<div class="calendar-title">Календарь новостей</div>')
+    response_text = response_text[news_container_start_index:news_container_end_index]
+    for i in range(response_text.count("href")):
+        href_index = response_text.find("href") + 6
+        href_end_index = response_text.find('<img srcset="') - 19
+        url = response_text[href_index:href_end_index]
+        news_urls.append(url)
 
+    return news_urls
+def parse_tv21news_info(news_url:list):
+    news_info = []
+    r = requests.get()
 # Запуск асинхронного кода
 if __name__ == "__main__":
     try:
-        news = parse_news(WEBSITES_URLS["tv21"],tv21_headers)
-
-        print(news.text)
+        news_urls = parse_tv21news_urls()
+        print(news_urls)
 
     except Exception as e:
         print(e)
