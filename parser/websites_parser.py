@@ -21,11 +21,12 @@ def parse_tv21news_urls():
     news_container_end_index = response_text.find('<div class="calendar-title">Календарь новостей</div>')
     response_text = response_text[news_container_start_index:news_container_end_index]
     for i in range(response_text.count("href")):
-        href_index = response_text.find("href") + 6
+        href_index = response_text.find("href") + 6 
         href_end_index = response_text.find('<img srcset="') - 19
         url = response_text[href_index:href_end_index]
         news_urls.append(url)
-
+        response_text = response_text[href_end_index + 25:]
+    print(f'NEWS IRL --------------{news_urls}')
     return news_urls
 def parse_tv21news_info(news_url:list):
     news_info = []
@@ -34,7 +35,6 @@ def parse_tv21news_info(news_url:list):
 if __name__ == "__main__":
     try:
         news_urls = parse_tv21news_urls()
-        print(news_urls)
 
     except Exception as e:
         print(e)
