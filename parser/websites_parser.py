@@ -24,17 +24,21 @@ def parse_tv21news_urls():
         href_index = response_text.find("href") + 6 
         href_end_index = response_text.find('<img srcset="') - 19
         url = response_text[href_index:href_end_index]
-        news_urls.append(url)
+        news_urls.append("https://www.tv21.ru" + url)
         response_text = response_text[href_end_index + 25:]
-    print(f'NEWS IRL --------------{news_urls}')
+    print(f'NEWS URL --------------{news_urls}')
     return news_urls
-def parse_tv21news_info(news_url:list):
+def parse_tv21news_info(news_urls:list):
     news_info = []
-    r = requests.get()
+    for news in news_urls:
+        r = requests.get(news, headers=tv21_headers)
+        print(r.text)
 # Запуск асинхронного кода
 if __name__ == "__main__":
     try:
-        news_urls = parse_tv21news_urls()
+        #news_urls = parse_tv21news_urls()
+        news_urls = ["https://www.tv21.ru/news/2025/05/14/zhiteli-murmanskoy-oblasti-ostalis-bez-otopleniya"]
+        parse_tv21news_info(news_urls)
 
     except Exception as e:
         print(e)

@@ -13,11 +13,18 @@ class VkPostsRaw(Base):
     pid:Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     ptext:Mapped[str] = mapped_column(String(15895))
     purl:Mapped[str] = mapped_column(String(150))
-    pparsetime = mapped_column(DateTime)
+    pdate = mapped_column(DateTime)
     pgroup:Mapped[str] = mapped_column(String(48))
-    def __str__(self):
-        return f"VkPostsRaw(pid={self.pid}, text={self.ptext}, url={self.purl}, parse_time={self.pparsetime}, group={self.pgroup})"
-    
+    parse_date = mapped_column(DateTime)
+class WebsiteNewsRaw(Base):
+    __tablename__ = 'website_news_raw'
+    nid:Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    ntext =  mapped_column(String(15555))
+    nurl=  mapped_column(String(200))
+    ndate = mapped_column(DateTime)
+    parse_date = mapped_column(DateTime)
+    website_name =  mapped_column(String(100))
+
 engine = create_async_engine(url=os.getenv("POSTGRESQL_URL"))
 async_session = async_sessionmaker(engine)
 

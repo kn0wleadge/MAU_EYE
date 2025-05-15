@@ -6,9 +6,10 @@ import os
 import datetime
 
 import parser.vk_parser as vk_parser
+import parser.async_website_parsers as website_parsers
+from parser.async_website_parsers import parse_multiple_news_async
 from database.models import async_main, async_session
-from database.queries import insert_post, get_post
-from sources import VK_PUBLICS_NAMES
+from database.queries import insert_vk_post, get_vk_post, insert_wnews, get_wnews
 #request = f"https://api.vk.com/method/wall.get?access_token={os.getenv("VK_API_TOKEN")}&v={os.getenv("VK_API_VERSION")}&domain={domain}"
 
 
@@ -23,14 +24,23 @@ from sources import VK_PUBLICS_NAMES
 
 async def main():
     await async_main()
-    posts = await vk_parser.parse_vk()
-    for post in posts:
-        time = int(post[3])
-        await insert_post(id=int(post[0]),text=post[1],
-                        url=post[2],
-                        parse_time=datetime.datetime.fromtimestamp((int(post[3]))),
-                        group=post[4]
-                        )
+    #posts = await vk_parser.parse_vk()
+    news_links = website_parsers.get_tv21news_urls()
+    news = await parse_multiple_news_async(news_links, "tv21")
+    # for post in posts:
+    #     await insert_vk_post(id=int(post["id"]),
+    #                     text=post["text"],
+    #                     url=post["post_url"],
+    #                     post_date = post["post_date"],
+    #                     group = post["group_name"],
+    #                     parse_date=post["parse_date"]
+    #                     )
+    for n in news:
+        await insert_wnews(text=n["ntext"],
+                           url=n['nurl'],
+                           post_date=n['ndate'],
+                           parse_date=n['parse_date'],
+                           website_name=n['website_name'])
     #await insert_post("TEXT", "URL", datetime.datetime.now(),"GROUP")
 
 
