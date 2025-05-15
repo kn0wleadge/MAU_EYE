@@ -6,7 +6,7 @@ from sqlalchemy import select, insert, update
 import datetime
 import json
 from database.models import async_session
-from database.models import VkPostsRaw, WebsiteNewsRaw
+from database.models import VkPostsRaw, WebsiteNewsRaw, Publication
 
 
 async def get_vk_post(id):
@@ -70,4 +70,29 @@ async def insert_wnews(text:str, url:str, post_date:DateTime, parse_date:DateTim
                 print(f'News already exists in DB!')
         except Exception as e:
             print(f'Error during insterting into WebsiteNewsRaw - {e}')
+            
+async def get_publication(url:str):
+    news = None
+    async with async_session() as session:
+        try:
+            news = await session.scalar(select(Publication).where(Publication.purl == url))
+        except Exception as e:
+            print(f'Error during select from Publication - {e}')
+    
+    return news
+async def insert_publication(text:str, url:str, post_date:DateTime, source:str, parse_date:DateTime):
+    async with async_session() as session:
+        try:
+            if (await get_publication(url) == None):
+                await session.execute(insert(Publication).values(ptext = text,
+                                                                    purl = url,
+                                                                    pdate = datetime.datetime.fromtimestamp(int(post_date)),
+                                                                    psource = source,
+                                                                    parse_date = datetime.datetime.fromtimestamp(int(parse_date)),
+                                                                    ))
+                await session.commit()
+            else:
+                print('Publication already exists in DB!')
+        except Exception as e:
+            print(f'Error during insterting into Publication - {e}')
         

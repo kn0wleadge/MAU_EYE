@@ -24,7 +24,15 @@ class WebsiteNewsRaw(Base):
     ndate = mapped_column(DateTime)
     parse_date = mapped_column(DateTime)
     website_name =  mapped_column(String(100))
-
+class Publication(Base):
+    __tablename__ = "publication"
+    pid:Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    ptext =  mapped_column(String(15555))
+    purl=  mapped_column(String(200))
+    pdate = mapped_column(DateTime)
+    psource = mapped_column(String(100))
+    parse_date = mapped_column(DateTime) 
+    
 engine = create_async_engine(url=os.getenv("POSTGRESQL_URL"))
 async_session = async_sessionmaker(engine)
 
