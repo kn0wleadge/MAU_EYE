@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2>Публикация от {{ publication.pdate.strftime('%d.%m.%Y') }}</h2>
+    </div>
+    <div class="card-body">
+        <div class="mb-3">
+            <h5>Источник:</h5>
+            <p>{{ publication.psource }}</p>
+        </div>
+        
+        <div class="mb-3">
+            <h5>Тональность:</h5>
+            <span class="badge 
+                {% if publication.assesment == 'positive' %}bg-success
+                {% elif publication.assesment == 'negative' %}bg-danger
+                {% else %}bg-secondary{% endif %}">
+                {{ publication.assesment }}
+            </span>
+        </div>
+        
+        <div class="mb-3">
+            <h5>Упоминание университета:</h5>
+            <p>{% if publication.mau_mentioned %}Да{% else %}Нет{% endif %}</p>
+        </div>
+        
+        <div class="mb-3">
+            <h5>Текст:</h5>
+            <p>{{ publication.ptext }}</p>
+        </div>
+        
+        <div class="mb-3">
+            <h5>Ссылка:</h5>
+            <a href="{{ publication.purl }}" target="_blank">{{ publication.purl }}</a>
+        </div>
+        
+        <a href="/publications" class="btn btn-primary">Назад к списку</a>
+    </div>
+</div>
+{% endblock %}

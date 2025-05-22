@@ -2,6 +2,7 @@ import asyncio
 import aiohttp
 from bs4 import BeautifulSoup
 import datetime
+import logging
 import re
 from urllib.parse import urljoin # Though not collecting images, base_url might be useful for other relative links if needed in future.
 import requests
@@ -30,7 +31,7 @@ def get_tv21news_urls():
         url = response_text[href_index:href_end_index]
         news_urls.append("https://www.tv21.ru" + url)
         response_text = response_text[href_end_index + 25:]
-    print(f'NEWS URL --------------{news_urls}')
+    #print(f'NEWS URL --------------{news_urls}')
     return news_urls
 async def fetch_page(session, url):
     """Асинхронно загружает HTML-содержимое одной страницы."""
@@ -158,9 +159,12 @@ def parse_single_page_data(html_content, url, website_name):
 
 async def fetch_and_parse_single_page(session, url, website_name):
     """Асинхронно загружает и парсит одну страницу."""
+    
     html_content = await fetch_page(session, url)
     if html_content:
+        logging.info(f"Parse web-post with url - {url}")
         return parse_single_page_data(html_content, url, website_name)
+    
     return {
         'ntext': None,
         'nurl': url,

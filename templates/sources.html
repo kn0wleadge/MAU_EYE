@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Список источников</h1>
+<a href="{{ url_for('add_source') }}" class="btn btn-primary mb-3">Добавить источник</a>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Название</th>
+            <th>Тип</th>
+            <th>URL</th>
+            <th>Дата добавления</th>
+            <th>Статус</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for source in sources %}
+        <tr>
+            <td>{{ source.sname }}</td>
+            <td>
+                {% if source.source_type == 'vk' %}
+                    <span class="badge bg-primary">ВК</span>
+                {% elif source.source_type == 'telegram' %}
+                    <span class="badge bg-info">Telegram</span>
+                {% else %}
+                    <span class="badge bg-secondary">Сайт</span>
+                {% endif %}
+            </td>
+            <td><a href="{{ source.surl }}" target="_blank">{{ source.surl }}</a></td>
+            <td>{{ source.added_date.strftime('%d.%m.%Y') }}</td>
+            <td>
+                {% if source.is_active %}
+                    <span class="badge bg-success">Активен</span>
+                {% else %}
+                    <span class="badge bg-danger">Неактивен</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

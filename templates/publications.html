@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Публикации</h1>
+
+<!-- Форма фильтрации -->
+<form method="get" class="mb-4">
+    <div class="row g-3">
+        <div class="col-md-3">
+            <label for="source" class="form-label">Источник</label>
+            <input type="text" class="form-control" id="source" name="source" 
+                   value="{{ request.args.get('source', '') }}">
+        </div>
+        
+        <div class="col-md-2">
+            <label for="date_from" class="form-label">Дата от</label>
+            <input type="date" class="form-control" id="date_from" name="date_from"
+                   value="{{ request.args.get('date_from', '') }}">
+        </div>
+        
+        <div class="col-md-2">
+            <label for="date_to" class="form-label">Дата до</label>
+            <input type="date" class="form-control" id="date_to" name="date_to"
+                   value="{{ request.args.get('date_to', '') }}">
+        </div>
+        
+        <div class="col-md-2">
+            <label for="sentiment" class="form-label">Тональность</label>
+            <select class="form-select" id="sentiment" name="sentiment">
+                <option value="all">Все</option>
+                <option value="positive" {% if request.args.get('sentiment') == 'positive' %}selected{% endif %}>Позитивные</option>
+                <option value="negative" {% if request.args.get('sentiment') == 'negative' %}selected{% endif %}>Негативные</option>
+                <option value="neutral" {% if request.args.get('sentiment') == 'neutral' %}selected{% endif %}>Нейтральные</option>
+            </select>
+        </div>
+        
+        <div class="col-md-2 d-flex align-items-end">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="mau_only" name="mau_only" 
+                       {% if request.args.get('mau_only') == 'on' %}checked{% endif %}>
+                <label class="form-check-label" for="mau_only">Только с упоминанием</label>
+            </div>
+        </div>
+        
+        <div class="col-md-1 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary">Фильтровать</button>
+        </div>
+    </div>
+</form>
+
+<!-- Таблица публикаций -->
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th>Дата</th>
+            <th>Источник</th>
+            <th>Тональность</th>
+            <th>Упоминание</th>
+            <th>Действия</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for pub in publications %}
+        <tr>
+            <td>{{ pub.pdate.strftime('%d.%m.%Y') }}</td>
+            <td>{{ pub.psource }}</td>
+            <td>
+                <span class="badge 
+                    {% if pub.assesment == 'positive' %}bg-success
+                    {% elif pub.assesment == 'negative' %}bg-danger
+                    {% else %}bg-secondary{% endif %}">
+                    {{ pub.assesment }}
+                </span>
+            </td>
+            <td>
+                {% if pub.mau_mentioned %}
+                    <span class="badge bg-primary">Да</span>
+                {% else %}
+                    <span class="badge bg-secondary">Нет</span>
+                {% endif %}
+            </td>
+            <td>
+                <a href="/publication/{{ pub.pid }}" class="btn btn-sm btn-outline-primary">Подробнее</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

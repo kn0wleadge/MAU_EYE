@@ -5,6 +5,7 @@ import requests
 import os
 import asyncio
 import json
+import logging
 import datetime
 class VkParser():
     def __init__(self, token):
@@ -24,6 +25,32 @@ async def get_posts(domain, count):
     with open('data.json', 'w') as f:
         json.dump(data,f)
     return data
+def add_test_negative_posts():
+    return([{
+                "id" : 15,
+                "text" : os.getenv("TEST_POST1_TEXT"),
+                "post_url" : "https://vk.com/wall-184888396_23930",
+                "post_date" : str(int(datetime.datetime.strptime("2022.06.24 11:18:00", '%Y.%m.%d %H:%M:%S').timestamp())),
+                "group_name" : "Gorod51",
+                "parse_date" : str(int(datetime.datetime.now().timestamp()))    
+            },
+            {
+                "id" : 16,
+                "text" : os.getenv("TEST_POST2_TEXT"),
+                "post_url" : "https://vk.com/wall-59208578_578017",
+                "post_date" : str(int(datetime.datetime.strptime("2022.06.24 10:15:00", '%Y.%m.%d %H:%M:%S').timestamp())),
+                "group_name" : "SeverPost",
+                "parse_date" : str(int(datetime.datetime.now().timestamp()))    
+            },
+            {
+                "id" : 17,
+                "text" : os.getenv("TEST_POST3_TEXT"),
+                "post_url" : "https://murmansk.mk.ru/incident/2024/08/28/ugolovnoe-delo-po-faktu-vzyatki-v-universitete-vozbudili-v-murmanske.html",
+                "post_date" : str(int(datetime.datetime.strptime("2024.08.28 09:22:00", '%Y.%m.%d %H:%M:%S').timestamp())),
+                "group_name" : "SeverPost",
+                "parse_date" : str(int(datetime.datetime.now().timestamp()))    
+            }
+            ])
 
 async def parse_vk(posts = 10):
     parse_date = str(int(datetime.datetime.now().timestamp()))
@@ -42,13 +69,18 @@ async def parse_vk(posts = 10):
                 "parse_date" : parse_date
             }
             vk_posts.append(post_info)
-    for post in vk_posts:
-        print(f'post id - {post["id"]}')
-        print(f'post text - {post["text"]}')
-        print(f'post url - {post["post_url"]}')
-        print(f'post date - {datetime.datetime.fromtimestamp(int(post["post_date"]))}')
-        print(f'post name - {post["group_name"]}')
-        print(f'parse date - {datetime.datetime.fromtimestamp(int(post["parse_date"]))}')
+            logging.info(f"Parsed post with url - {post_url}")
+    # for post in vk_posts:
+    #     print(f'pid - {post["id"]}')
+    #     print(f'ptext - {post["text"]}')
+    #     print(f'purl - {post["post_url"]}')
+    #     print(f'pdate - {datetime.datetime.fromtimestamp(int(post["post_date"]))}')
+    #     print(f'group name - {post["group_name"]}')
+    #     print(f'parse date - {datetime.datetime.fromtimestamp(int(post["parse_date"]))}')
+    test_posts = add_test_negative_posts()
+    for post in test_posts:
+        logging.info(f"TEST POST parsed url - {post['post_url']}")
+        vk_posts.append(post)
     return vk_posts
 
 if __name__ == '__main__':

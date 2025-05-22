@@ -1,12 +1,13 @@
 import os
-from sqlalchemy import BigInteger, Integer, String,DateTime, ForeignKey
+from sqlalchemy import BigInteger, Integer, String,DateTime, ForeignKey, and_
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.ext.asyncio import AsyncAttrs, async_sessionmaker, create_async_engine
 from sqlalchemy import select, insert, update
 import datetime
 import json
-from database.models import async_session
-from database.models import VkPostsRaw, WebsiteNewsRaw, Publication
+import asyncio
+from .models import async_session
+from .models import VkPostsRaw, WebsiteNewsRaw, Publication
 
 
 async def get_vk_post(id):
@@ -92,7 +93,55 @@ async def insert_publication(text:str, url:str, post_date:DateTime, source:str, 
                                                                     ))
                 await session.commit()
             else:
-                print('Publication already exists in DB!')
+                print(f'Publication added already, url - {url} ')
         except Exception as e:
             print(f'Error during insterting into Publication - {e}')
-        
+            
+async def add_assesment(url:str, assesment:str):
+    async with async_session() as session:
+        try:
+            if (await get_publication(url) != None):
+                await session.execute(update(Publication).where(Publication.purl == url).values(assesment = assesment))
+                await session.commit()
+            else:
+                print(f'ERROR: No publication with url - {url}')
+        except Exception as e:
+            print(f'Error during adding assesment into Publication - {e}')
+
+async def add_mention(url:str, mau_mention:bool):
+    async with async_session() as session:
+        try:
+            if (await get_publication(url) != None):
+                await session.execute(update(Publication).where(Publication.purl == url).values(mau_mentioned = mau_mention))
+                await session.commit()
+            else:
+                print(f'ERROR: No publication with url - {url}')
+        except Exception as e:
+            print(f'Error during adding mention into Publication - {e}')
+                    
+async def get_last_publications(minutes: int):
+    publications = []
+    async with async_session() as session:
+        try:
+            now = datetime.datetime.now() 
+            time_threshold = now - datetime.timedelta(minutes=minutes)
+
+            result = await session.execute(
+                select(Publication).where(
+                    Publication.parse_date >= time_threshold,
+                    Publication.parse_date <= now
+                )
+            )
+            publications = result.scalars().all()
+            
+        except Exception as e:
+            print(f'Error during getting last Publications - {e}')
+            await session.rollback()
+    return publications
+async def test():
+    last_publications = await get_last_publications(60)
+    print("Printing publications")
+    for pub in last_publications:
+        print(pub)
+if __name__ == "__main__":
+    asyncio.run(test())
