@@ -7,7 +7,7 @@ import datetime
 import json
 import asyncio
 from .models import async_session
-from .models import VkPostsRaw, WebsiteNewsRaw, Publication
+from .models import VkPostsRaw, WebsiteNewsRaw, Publication, Source
 
 
 async def get_vk_post(id):
@@ -138,6 +138,20 @@ async def get_last_publications(minutes: int):
             print(f'Error during getting last Publications - {e}')
             await session.rollback()
     return publications
+
+async def insert_source(name, url, source_type, added_date):
+    async with async_session() as session:
+        await session.execute(insert(Source).values(sname = name, 
+                                                    surl = url, source_type = source_type,
+                                                    added_date = added_date))
+        await session.commit()
+
+async def get_all_active_sources():
+    async with async_session() as session:
+        result = await session.execute(select(Source).where(Source.is_active == True))
+        sources = result.scalars().all()
+        return sources
+
 async def test():
     last_publications = await get_last_publications(60)
     print("Printing publications")

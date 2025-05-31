@@ -45,11 +45,13 @@ class Publication(Base):
             f"assesment= '{self.assesment}',"
             f"mau_mentioned={self.mau_mentioned})"
         )
+
 class Source(Base):
     __tablename__ = "Sources"
     sid:Mapped[int] = mapped_column(primary_key=True, autoincrement= True)
     sname = mapped_column(String(100))
     surl = mapped_column(String(200))
+    sdomain = mapped_column(String(100))
     source_type = mapped_column(String(20))  # 'vk', 'telegram', 'website'
     is_active = mapped_column(Boolean, default=True)
     added_date = mapped_column(DateTime)
