@@ -16,8 +16,8 @@ from sqlalchemy import select, insert, update
 import parser.vk_parser as vk_parser
 import parser.async_website_parsers as website_parsers
 from parser.async_website_parsers import parse_multiple_news_async
-from database.models import async_main, async_session, Publication
-from database.queries import insert_vk_post, get_vk_post, insert_wnews, get_wnews, insert_publication, add_assesment, get_last_publications, add_mention
+from database.models import async_main, async_session, Publication, Source
+from database.queries import insert_vk_post,insert_publication, add_assesment, get_last_publications,get_all_active_sources, add_mention
 
 
 from analyzer.publication_processor import get_assesment, check_university_mentions
@@ -35,18 +35,10 @@ from analyzer.sentiment_analyze import predict
 #print(data)
 #НА ЧЕМ ЗАКОНЧИЛ - СОЗДАЛ ВЫТЯГИВАНИЕ ПОСЛЕДНИХ НОВОСТЕЙ, ДОПИСАТЬ АНАЛИЗ ЭТИХ НОВОСТЕЙ(ФУНКЦИЯ analyze_publications)
 async def parse_publications():
-    
-    posts = await vk_parser.parse_vk()
+    sources = await get_all_active_sources()
+    posts = await vk_parser.parse_vk(10,sources)
     news_links = website_parsers.get_tv21news_urls()
     news = await parse_multiple_news_async(news_links, "tv21")
-    for post in posts:
-        await insert_vk_post(id=int(post["id"]),
-                        text=post["text"],
-                        url=post["post_url"],
-                        post_date = post["post_date"],
-                        group = post["group_name"],
-                        parse_date=post["parse_date"]
-                        )
     #TODO - Зарефакторить словари, которые собирают парсеры, чтобы они были одного формата
     # for n in news:
     #     await insert_publication(text=n["ntext"],

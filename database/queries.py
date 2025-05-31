@@ -148,8 +148,16 @@ async def insert_source(name, url, source_type, added_date):
 
 async def get_all_active_sources():
     async with async_session() as session:
-        result = await session.execute(select(Source).where(Source.is_active == True))
-        sources = result.scalars().all()
+        result = (await session.execute(select(Source).where(Source.is_active == True))).scalars().all()
+        sources = []
+        for row in result:
+                sources.append({"sid":row.sid,
+                               "sname":row.sname,
+                               "surl":row.surl,
+                               "sdomain":row.sdomain,
+                               "source_type":row.source_type,
+                               "is_active":row.is_active,
+                               "added_date":row.added_date})
         return sources
 
 async def test():

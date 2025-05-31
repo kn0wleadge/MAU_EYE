@@ -6,6 +6,8 @@ from database.models import Publication, Source  # Импортируем ваш
 from flask import redirect, url_for, flash
 from fpdf import FPDF
 from datetime import datetime, timedelta
+
+from parser.vk_parser import get_group_data
 import logging
 logging.basicConfig()
 logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)  # логи SQL-запросов
@@ -17,28 +19,40 @@ Session = sessionmaker(bind=engine)
 @app.route('/add_source', methods=['GET', 'POST'])
 def add_source():
     if request.method == 'POST':
-        name = request.form.get('name')
         url = request.form.get('url')
-        source_type = request.form.get('source_type')
-        
-        if not all([name, url, source_type]):
+        source_type = None
+        if (url.find("vk.com") != -1):
+            source_type = "vk"
+        elif (url.find("t.me") != -1):
+            source_type = "tg"
+        if not all([url]):
             flash('Все поля обязательны для заполнения', 'danger')
             return redirect(url_for('add_source'))
-        
+    
         session = Session()
-        try:
-            new_source = Source(
-                sname=name,
-                surl=url,
-                source_type=source_type,
-                added_date = datetime.fromtimestamp(int(str(int(datetime.now().timestamp()))))
-            )
-            session.add(new_source)
-            print("INSERTing))))")
-            session.commit()
-            session.close()
-        except Exception as e:
-            logging.info(f"Error during inserting Source - {e}")
+        if source_type == "vk":
+            domain = None
+            if (url.find("?") != -1):
+                domain = url[url.find("vk.com") + 7: url.find("?")]
+            else:
+                domain = url[url.find("vk.com") + 7:]
+            group_info = get_group_data(domain)
+            try:
+                new_source = Source(
+                    sid = group_info["id"],
+                    sname=group_info["name"],
+                    surl=url,
+                    source_type=source_type,
+                    sdomain = domain,
+                    added_date = datetime.fromtimestamp(int(str(int(datetime.now().timestamp()))))
+                )
+                session.add(new_source)
+                logging.info("Inserting vk group...")
+                session.commit()
+                session.close()
+            except Exception as e:
+                logging.info(f"Error during inserting Source - {e}")
+        #TODO - ELSE
         
         flash('Источник успешно добавлен', 'success')
         return redirect(url_for('index'))
