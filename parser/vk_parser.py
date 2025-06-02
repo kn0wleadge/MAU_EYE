@@ -67,6 +67,7 @@ async def parse_vk(posts, sources:list):
     for source in sources:
         group_posts = await get_posts(source["sdomain"],posts)
         for i in range(posts):
+            
             post_url = f"https://vk.com/{source['sdomain']}?w=wall-{source['sid']}_{str(group_posts[i]['id'])}"
             post_info = {
                 "id" : str(group_posts[i]["id"]),
@@ -74,7 +75,11 @@ async def parse_vk(posts, sources:list):
                 "post_url" : post_url,
                 "post_date" : str(group_posts[i]["date"]),
                 "group_name" : source['sname'],
-                "parse_date" : parse_date
+                "parse_date" : parse_date,
+                "likes" : group_posts[i]["likes"]["count"],
+                "views" : group_posts[i]["views"]["count"],
+                "comments" : group_posts[i]["comments"]["count"],
+                "reposts" : group_posts[i]["reposts"]["count"]
             }
             vk_posts.append(post_info)
             logging.info(f"Parsed post with url - {post_url}")

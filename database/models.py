@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 load_dotenv()
-from sqlalchemy import BigInteger, Integer, String,DateTime, ForeignKey, Boolean
+from sqlalchemy import BigInteger, Integer, String,DateTime, ForeignKey, Boolean, BIGINT
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.ext.asyncio import AsyncAttrs, async_sessionmaker, create_async_engine
 from sqlalchemy import select, insert, update
@@ -34,6 +34,10 @@ class Publication(Base):
     parse_date = mapped_column(DateTime)
     assesment = mapped_column(String(20))
     mau_mentioned = mapped_column(Boolean)
+    views = mapped_column(Integer)
+    likes = mapped_column(Integer)
+    comments = mapped_column(Integer)
+    reposts = mapped_column(Integer)
     def __str__(self):
         return (
             f"Publication(pid={self.pid}, "
@@ -48,7 +52,7 @@ class Publication(Base):
 
 class Source(Base):
     __tablename__ = "Sources"
-    sid:Mapped[int] = mapped_column(primary_key=True, autoincrement= True)
+    sid= mapped_column(BIGINT,primary_key=True, autoincrement= True)
     sname = mapped_column(String(100))
     surl = mapped_column(String(200))
     sdomain = mapped_column(String(100))

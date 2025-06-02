@@ -1,13 +1,13 @@
 from flask import Flask, render_template, request
-from sqlalchemy import create_engine, and_, or_
+from sqlalchemy import create_engine, and_, or_, func
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime
 from database.models import Publication, Source  # Импортируем вашу модель
 from flask import redirect, url_for, flash
 from fpdf import FPDF
 from datetime import datetime, timedelta
-
 from parser.vk_parser import get_group_data
+from parser.tg_parser import get_chat_info
 import logging
 logging.basicConfig()
 logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)  # логи SQL-запросов
@@ -52,6 +52,22 @@ def add_source():
                 session.close()
             except Exception as e:
                 logging.info(f"Error during inserting Source - {e}")
+        elif source_type == "tg":
+            domain = url[url.find("https://tg.me/") + 14:]
+            new_source = Source()
+            chat_info = get_chat_info(domain)
+            new_source = Source(
+                    sid = chat_info["id"],
+                    sname=chat_info["name"],
+                    surl=url,
+                    source_type=source_type,
+                    sdomain = domain,
+                    added_date = datetime.fromtimestamp(int(str(int(datetime.now().timestamp()))))
+                )
+            session.add(new_source)
+            logging.info("Inserting tg channel...")
+            session.commit()
+            session.close()
         #TODO - ELSE
         
         flash('Источник успешно добавлен', 'success')
@@ -65,26 +81,98 @@ def sources_list():
     sources = session.query(Source).order_by(Source.added_date.desc()).all()
     session.close()
     return render_template('sources.html', sources=sources)
-# Подключение к БД (замените на свои параметры)
 
+@app.route('/toggle_source/<int:sid>', methods=['POST'])
+def toggle_source(sid):
+    new_status = request.json.get('is_active')
+    session = Session()
+    source = session.query(Source).filter(Source.sid == sid).first()
+    if source:
+        source.is_active = new_status
+        session.commit()
+        session.close()
+        return {'success': True}
+    else:
+        session.close()
+        return {'success': False, 'error': 'Источник не найден'}
 @app.route('/')
 def index():
-    return render_template('index.html')
+    session = Session()
+
+    # 1. Публикации с упоминанием за последние 7 дней
+    week_ago = datetime.now() - timedelta(days=7)
+    mentions_by_day = session.query(
+        func.date(Publication.pdate).label('date'),
+        func.count(Publication.pid).label('count')
+    ).filter(
+        Publication.mau_mentioned == True,
+        Publication.pdate >= week_ago
+    ).group_by(
+        func.date(Publication.pdate)
+    ).all()
+
+    dates = []
+    mentions_count = []
+
+    for i in range(7):
+        current_date = (datetime.now() - timedelta(days=6 - i)).date()
+        date_str = current_date.strftime('%d.%m')
+        dates.append(date_str)
+        count = next((item.count for item in mentions_by_day if item.date == current_date), 0)
+        mentions_count.append(count)
+
+    # 2. Средние охваты по дням (по всем постам с упоминанием)
+    metrics_by_day = session.query(
+        func.date(Publication.pdate).label('date'),
+        func.avg(Publication.views).label('avg_views'),
+        func.avg(Publication.likes).label('avg_likes'),
+        func.avg(Publication.comments).label('avg_comments'),
+        func.avg(Publication.reposts).label('avg_reposts')
+    ).filter(
+        Publication.mau_mentioned == True,
+        Publication.pdate >= week_ago
+    ).group_by(
+        func.date(Publication.pdate)
+    ).all()
+
+    metrics_dict = {row.date: row for row in metrics_by_day}
+    views, likes, comments, reposts = [], [], [], []
+
+    for i in range(7):
+        current_date = (datetime.now() - timedelta(days=6 - i)).date()
+        metrics = metrics_dict.get(current_date)
+        views.append(round(metrics.avg_views or 0, 1) if metrics else 0)
+        likes.append(round(metrics.avg_likes or 0, 1) if metrics else 0)
+        comments.append(round(metrics.avg_comments or 0, 1) if metrics else 0)
+        reposts.append(round(metrics.avg_reposts or 0, 1) if metrics else 0)
+
+    session.close()
+
+    return render_template(
+        'index.html',
+        dates=dates,
+        mentions_count=mentions_count,
+        views=views,
+        likes=likes,
+        comments=comments,
+        reposts=reposts
+    )
 
 @app.route('/publications')
 def publications():
     session = Session()
-    
+    all_sources = [source[0] for source in session.query(Publication.psource).distinct().all()]
     # Получаем параметры фильтрации из запроса
     source_filter = request.args.get('source')
     date_from = request.args.get('date_from')
     date_to = request.args.get('date_to')
     sentiment = request.args.get('sentiment')
     mau_only = request.args.get('mau_only') == 'on'
+    sort_field = request.args.get('sort', 'views')  # По умолчанию сортируем по просмотрам
+    sort_order = request.args.get('order', 'desc')  # По умолчанию сортируем по убыванию
     
     # Строим запрос с фильтрами
     query = session.query(Publication)
-    
     if source_filter:
         query = query.filter(Publication.psource.ilike(f"%{source_filter}%"))
     
@@ -102,11 +190,20 @@ def publications():
     if mau_only:
         query = query.filter(Publication.mau_mentioned == True)
     
-    # Сортируем по дате публикации (новые сначала)
-    publications = query.order_by(Publication.pdate.desc()).all()
+    # Определяем направление сортировки
+    if sort_field in ['views', 'likes', 'comments', 'reposts']:
+        sort_column = getattr(Publication, sort_field)
+        if sort_order == 'asc':
+            query = query.order_by(sort_column.asc())
+        else:
+            query = query.order_by(sort_column.desc())
+    else:
+        # Сортируем по дате публикации (новые сначала), если сортировка не указана
+        query = query.order_by(Publication.pdate.desc())
     
+    publications = query.all()
     session.close()
-    return render_template('publications.html', publications=publications)
+    return render_template('publications.html', publications=publications, all_sources = all_sources)
 
 @app.route('/publication/<int:pid>')
 def publication_detail(pid):

@@ -6,9 +6,10 @@ from sqlalchemy import select, insert, update
 import datetime
 import json
 import asyncio
+import logging
 from .models import async_session
 from .models import VkPostsRaw, WebsiteNewsRaw, Publication, Source
-
+logging.basicConfig()
 
 async def get_vk_post(id):
     post = None
@@ -81,7 +82,11 @@ async def get_publication(url:str):
             print(f'Error during select from Publication - {e}')
     
     return news
-async def insert_publication(text:str, url:str, post_date:DateTime, source:str, parse_date:DateTime):
+async def update_publication(url:str, views, likes, comments,reposts):
+    async with async_session() as session:
+        await session.execute(update(Publication).where(Publication.purl == url).values(views = views, likes = likes, comments = comments, reposts = reposts))
+        await session.commit()
+async def insert_publication(text:str, url:str, post_date:DateTime, source:str, parse_date:DateTime, views:int, likes:int, comments:int, reposts:int):
     async with async_session() as session:
         try:
             if (await get_publication(url) == None):
@@ -90,13 +95,19 @@ async def insert_publication(text:str, url:str, post_date:DateTime, source:str, 
                                                                     pdate = datetime.datetime.fromtimestamp(int(post_date)),
                                                                     psource = source,
                                                                     parse_date = datetime.datetime.fromtimestamp(int(parse_date)),
+                                                                    views = views,
+                                                                    likes = likes,
+                                                                    comments = comments,
+                                                                    reposts = reposts
                                                                     ))
                 await session.commit()
             else:
-                print(f'Publication added already, url - {url} ')
+                print(f'Publication added already, updating info - {url} ')
+                await update_publication(url, views, likes, comments, reposts)
+
         except Exception as e:
             print(f'Error during insterting into Publication - {e}')
-            
+
 async def add_assesment(url:str, assesment:str):
     async with async_session() as session:
         try:
@@ -146,9 +157,25 @@ async def insert_source(name, url, source_type, added_date):
                                                     added_date = added_date))
         await session.commit()
 
-async def get_all_active_sources():
+async def get_all_active_vk_sources():
     async with async_session() as session:
-        result = (await session.execute(select(Source).where(Source.is_active == True))).scalars().all()
+        logging.info(f"getting VK sources")
+        result = (await session.execute(select(Source).where((Source.is_active == True) & (Source.source_type == 'vk')))).scalars().all()
+        sources = []
+        for row in result:
+                source = {"sid":row.sid,
+                               "sname":row.sname,
+                               "surl":row.surl,
+                               "sdomain":row.sdomain,
+                               "source_type":row.source_type,
+                               "is_active":row.is_active,
+                               "added_date":row.added_date}
+                sources.append(source)
+                logging.info(f"Got source - source ")
+        return sources
+async def get_all_active_tg_sources():
+    async with async_session() as session:
+        result = (await session.execute(select(Source).where((Source.is_active == True) & (Source.source_type == 'tg')))).scalars().all()
         sources = []
         for row in result:
                 sources.append({"sid":row.sid,
@@ -159,7 +186,6 @@ async def get_all_active_sources():
                                "is_active":row.is_active,
                                "added_date":row.added_date})
         return sources
-
 async def test():
     last_publications = await get_last_publications(60)
     print("Printing publications")

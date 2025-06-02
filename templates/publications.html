@@ -6,10 +6,16 @@
 <!-- Форма фильтрации -->
 <form method="get" class="mb-4">
     <div class="row g-3">
+        <!-- Поле выбора источника с автодополнением -->
         <div class="col-md-3">
             <label for="source" class="form-label">Источник</label>
             <input type="text" class="form-control" id="source" name="source" 
-                   value="{{ request.args.get('source', '') }}">
+                   value="{{ request.args.get('source', '') }}" list="sourceOptions" autocomplete="off">
+            <datalist id="sourceOptions">
+                {% for source in all_sources %}
+                <option value="{{ source }}">{{ source }}</option>
+                {% endfor %}
+            </datalist>
         </div>
         
         <div class="col-md-2">
@@ -36,7 +42,7 @@
         
         <div class="col-md-2 d-flex align-items-end">
             <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="mau_only" name="mau_only" 
+                <input class="form-check-input" type="checkbox" id="mau_only" name="mau_only"
                        {% if request.args.get('mau_only') == 'on' %}checked{% endif %}>
                 <label class="form-check-label" for="mau_only">Только с упоминанием</label>
             </div>
@@ -48,42 +54,98 @@
     </div>
 </form>
 
-<!-- Таблица публикаций -->
-<table class="table table-striped table-hover">
-    <thead>
-        <tr>
-            <th>Дата</th>
-            <th>Источник</th>
-            <th>Тональность</th>
-            <th>Упоминание</th>
-            <th>Действия</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for pub in publications %}
-        <tr>
-            <td>{{ pub.pdate.strftime('%d.%m.%Y') }}</td>
-            <td>{{ pub.psource }}</td>
-            <td>
-                <span class="badge 
-                    {% if pub.assesment == 'positive' %}bg-success
-                    {% elif pub.assesment == 'negative' %}bg-danger
-                    {% else %}bg-secondary{% endif %}">
-                    {{ pub.assesment }}
-                </span>
-            </td>
-            <td>
-                {% if pub.mau_mentioned %}
-                    <span class="badge bg-primary">Да</span>
-                {% else %}
-                    <span class="badge bg-secondary">Нет</span>
-                {% endif %}
-            </td>
-            <td>
-                <a href="/publication/{{ pub.pid }}" class="btn btn-sm btn-outline-primary">Подробнее</a>
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<!-- Таблица публикаций с возможностью сортировки -->
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead class="table-light">
+            <tr>
+                <th>Дата</th>
+                <th>Источник</th>
+                <th>Тональность</th>
+                <th>Упоминание</th>
+                <th>
+                    <a href="?sort=views&order={% if request.args.get('sort') == 'views' and request.args.get('order') == 'asc' %}desc{% else %}asc{% endif %}{% for key, value in request.args.items() %}{% if key not in ['sort', 'order'] %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                        Просмотры
+                        {% if request.args.get('sort') == 'views' %}
+                            {% if request.args.get('order') == 'asc' %}
+                                <i class="bi bi-arrow-up"></i>
+                            {% else %}
+                                <i class="bi bi-arrow-down"></i>
+                            {% endif %}
+                        {% else %}
+                            <i class="bi bi-arrow-down"></i>
+                        {% endif %}
+                    </a>
+                </th>
+                <th>
+                    <a href="?sort=likes&order={% if request.args.get('sort') == 'likes' and request.args.get('order') == 'asc' %}desc{% else %}asc{% endif %}{% for key, value in request.args.items() %}{% if key not in ['sort', 'order'] %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                        Лайки
+                        {% if request.args.get('sort') == 'likes' %}
+                            {% if request.args.get('order') == 'asc' %}
+                                <i class="bi bi-arrow-up"></i>
+                            {% else %}
+                                <i class="bi bi-arrow-down"></i>
+                            {% endif %}
+                        {% endif %}
+                    </a>
+                </th>
+                <th>
+                    <a href="?sort=comments&order={% if request.args.get('sort') == 'comments' and request.args.get('order') == 'asc' %}desc{% else %}asc{% endif %}{% for key, value in request.args.items() %}{% if key not in ['sort', 'order'] %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                        Комментарии
+                        {% if request.args.get('sort') == 'comments' %}
+                            {% if request.args.get('order') == 'asc' %}
+                                <i class="bi bi-arrow-up"></i>
+                            {% else %}
+                                <i class="bi bi-arrow-down"></i>
+                            {% endif %}
+                        {% endif %}
+                    </a>
+                </th>
+                <th>
+                    <a href="?sort=reposts&order={% if request.args.get('sort') == 'reposts' and request.args.get('order') == 'asc' %}desc{% else %}asc{% endif %}{% for key, value in request.args.items() %}{% if key not in ['sort', 'order'] %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                        Репосты
+                        {% if request.args.get('sort') == 'reposts' %}
+                            {% if request.args.get('order') == 'asc' %}
+                                <i class="bi bi-arrow-up"></i>
+                            {% else %}
+                                <i class="bi bi-arrow-down"></i>
+                            {% endif %}
+                        {% endif %}
+                    </a>
+                </th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pub in publications %}
+            <tr>
+                <td>{{ pub.pdate.strftime('%d.%m.%Y') }}</td>
+                <td>{{ pub.psource }}</td>
+                <td>
+                    <span class="badge 
+                        {% if pub.assesment == 'positive' %}bg-success
+                        {% elif pub.assesment == 'negative' %}bg-danger
+                        {% else %}bg-secondary{% endif %}">
+                        {{ pub.assesment }}
+                    </span>
+                </td>
+                <td>
+                    {% if pub.mau_mentioned %}
+                        <span class="badge bg-primary">Да</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Нет</span>
+                    {% endif %}
+                </td>
+                <td>{{ "{:,}".format(pub.views).replace(",", " ") if pub.views else 0 }}</td>
+                <td>{{ "{:,}".format(pub.likes).replace(",", " ") if pub.likes else 0 }}</td>
+                <td>{{ "{:,}".format(pub.comments).replace(",", " ") if pub.comments else 0 }}</td>
+                <td>{{ "{:,}".format(pub.reposts).replace(",", " ") if pub.reposts else 0 }}</td>
+                <td>
+                    <a href="/publication/{{ pub.pid }}" class="btn btn-sm btn-outline-primary">Подробнее</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endblock %}

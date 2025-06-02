@@ -4,6 +4,48 @@
 <h1>Список источников</h1>
 <a href="{{ url_for('add_source') }}" class="btn btn-primary mb-3">Добавить источник</a>
 
+<style>
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+}
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 24px;
+}
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+input:checked + .slider {
+    background-color: #28a745;
+}
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+</style>
+
 <table class="table">
     <thead>
         <tr>
@@ -12,6 +54,7 @@
             <th>URL</th>
             <th>Дата добавления</th>
             <th>Статус</th>
+            <th>Активность</th>
         </tr>
     </thead>
     <tbody>
@@ -21,7 +64,7 @@
             <td>
                 {% if source.source_type == 'vk' %}
                     <span class="badge bg-primary">ВК</span>
-                {% elif source.source_type == 'telegram' %}
+                {% elif source.source_type == 'tg' %}
                     <span class="badge bg-info">Telegram</span>
                 {% else %}
                     <span class="badge bg-secondary">Сайт</span>
@@ -36,8 +79,45 @@
                     <span class="badge bg-danger">Неактивен</span>
                 {% endif %}
             </td>
+            <td>
+                <label class="switch">
+                    <input type="checkbox" class="toggle-source" data-sid="{{ source.sid }}" {% if source.is_active %}checked{% endif %}>
+                    <span class="slider"></span>
+                </label>
+            </td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.toggle-source').forEach(function (toggle) {
+        toggle.addEventListener('change', function () {
+            const sid = this.getAttribute('data-sid');
+            const isActive = this.checked;
+            fetch(`/toggle_source/${sid}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ is_active: isActive }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    alert('Ошибка при обновлении источника');
+                    this.checked = !isActive;
+                } else {
+                    location.reload();  // Обновим метку "Активен/Неактивен"
+                }
+            })
+            .catch(() => {
+                alert('Ошибка сети');
+                this.checked = !isActive;
+            });
+        });
+    });
+});
+</script>
 {% endblock %}

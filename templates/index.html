@@ -1,11 +1,125 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1 class = "mb-5">Система мониторинга публикаций </h1>
-<div class="d-grid gap-2 col-md-6 mx-auto">
+<h1 class="mb-5">Система мониторинга публикаций</h1>
+
+<!-- Кнопки выше графиков -->
+<div class="d-grid gap-2 col-md-6 mx-auto mb-4">
     <a href="/publications" class="btn btn-primary btn-lg">Перейти к списку публикаций</a>
     <a href="/add_source" class="btn btn-primary btn-lg">Добавить источник</a>
     <a href="/generate_report" class="btn btn-primary btn-lg">Сгенерировать отчет</a>
     <a href="/sources" class="btn btn-primary btn-lg">Просмотр источников</a>
 </div>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Публикации с упоминанием (за неделю)</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="mentionsChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Средние показатели постов с упоминаниями (за неделю)</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="metricsChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // График публикаций
+    const mentionsCtx = document.getElementById('mentionsChart').getContext('2d');
+    new Chart(mentionsCtx, {
+        type: 'line',
+        data: {
+            labels: {{ dates|tojson|safe }},
+            datasets: [{
+                label: 'Количество публикаций',
+                data: {{ mentions_count|tojson|safe }},
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 2,
+                tension: 0.3,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'top' }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+
+    // График средних метрик
+    const metricsCtx = document.getElementById('metricsChart').getContext('2d');
+    new Chart(metricsCtx, {
+        type: 'line',
+        data: {
+            labels: {{ dates|tojson|safe }},
+            datasets: [
+                {
+                    label: 'Просмотры',
+                    data: {{ views|tojson|safe }},
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    tension: 0.3
+                },
+                {
+                    label: 'Лайки',
+                    data: {{ likes|tojson|safe }},
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    tension: 0.3
+                },
+                {
+                    label: 'Комментарии',
+                    data: {{ comments|tojson|safe }},
+                    borderColor: 'rgba(255, 206, 86, 1)',
+                    backgroundColor: 'rgba(255, 206, 86, 0.2)',
+                    tension: 0.3
+                },
+                {
+                    label: 'Репосты',
+                    data: {{ reposts|tojson|safe }},
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    tension: 0.3
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'top' }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+});
+</script>
 {% endblock %}
