@@ -1,8 +1,9 @@
 from flask import Flask, render_template, request
-from sqlalchemy import create_engine, and_, or_, func
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import create_engine, and_, or_, func, select
+from sqlalchemy.orm import sessionmaker, joinedload
 from datetime import datetime
-from database.models import Publication, Source  # Импортируем вашу модель
+from sqlalchemy import BigInteger
+from database.models import Publication, Source 
 from flask import redirect, url_for, flash
 from fpdf import FPDF
 from datetime import datetime, timedelta
@@ -16,7 +17,34 @@ app.secret_key = 'key!!!'
 DATABASE_URL = "postgresql+psycopg2://postgres:Kapibara@localhost:5432/MAU_EYE"
 engine = create_engine(DATABASE_URL)
 Session = sessionmaker(bind=engine)
-@app.route('/add_source', methods=['GET', 'POST'])
+
+
+def get_domain(url:str, source_type:str):
+    domain = None
+    #print(f"url - {url}, source_type - {source_type}")
+    if source_type == "vk":
+        if (url.find("?") != -1):
+            domain = url[url.find("vk.com") + 7: url.find("?")]
+        else:
+            domain = url[url.find("vk.com") + 7:]
+    elif source_type == "tg":
+        domain = url[url.find("https://t.me/") + 13:]
+    return domain
+
+def get_source(url:str):
+    source_type = None
+    if (url.find("vk.com") != -1):
+        source_type = "vk"
+    elif (url.find("t.me") != -1):
+        source_type = "tg" 
+    session = Session()
+    domain = get_domain(url, source_type)
+    #print(f"domain - {domain}")
+    source = session.query(Source).filter((Source.source_type == source_type) & (Source.sdomain == domain)).scalar()
+    print(source)
+    return source
+
+@app.route('/add_source', methods=['GET', 'POST'])   
 def add_source():
     if request.method == 'POST':
         url = request.form.get('url')
@@ -25,52 +53,42 @@ def add_source():
             source_type = "vk"
         elif (url.find("t.me") != -1):
             source_type = "tg"
-        if not all([url]):
-            flash('Все поля обязательны для заполнения', 'danger')
+        if not url:
+            flash('URL обязателен для заполнения', 'danger')
             return redirect(url_for('add_source'))
-    
-        session = Session()
-        if source_type == "vk":
-            domain = None
-            if (url.find("?") != -1):
-                domain = url[url.find("vk.com") + 7: url.find("?")]
-            else:
-                domain = url[url.find("vk.com") + 7:]
-            group_info = get_group_data(domain)
-            try:
-                new_source = Source(
-                    sid = group_info["id"],
-                    sname=group_info["name"],
-                    surl=url,
-                    source_type=source_type,
-                    sdomain = domain,
-                    added_date = datetime.fromtimestamp(int(str(int(datetime.now().timestamp()))))
-                )
-                session.add(new_source)
-                logging.info("Inserting vk group...")
-                session.commit()
-                session.close()
-            except Exception as e:
-                logging.info(f"Error during inserting Source - {e}")
-        elif source_type == "tg":
-            domain = url[url.find("https://tg.me/") + 14:]
-            new_source = Source()
-            chat_info = get_chat_info(domain)
-            new_source = Source(
-                    sid = chat_info["id"],
-                    sname=chat_info["name"],
-                    surl=url,
-                    source_type=source_type,
-                    sdomain = domain,
-                    added_date = datetime.fromtimestamp(int(str(int(datetime.now().timestamp()))))
-                )
-            session.add(new_source)
-            logging.info("Inserting tg channel...")
-            session.commit()
-            session.close()
-        #TODO - ELSE
         
-        flash('Источник успешно добавлен', 'success')
+        # Проверка, существует ли уже такой источник
+        if get_source(url):
+            flash('Такой источник уже добавлен', 'warning')
+            return redirect(url_for('add_source'))
+
+        session = Session()
+        domain = get_domain(url, source_type)
+        group_info = None
+        if source_type == "vk":
+            group_info = get_group_data(domain)
+        elif source_type == "tg":
+            group_info = get_chat_info(domain)
+
+        try:
+            new_source = Source(
+                sid=group_info["id"],
+                sname=group_info["name"],
+                surl=url,
+                source_type=source_type,
+                sdomain=domain,
+                added_date=datetime.fromtimestamp(int(str(int(datetime.now().timestamp()))))
+            )
+            session.add(new_source)
+            logging.info(f"Inserting {source_type} group...")
+            session.commit()
+            flash('Источник успешно добавлен', 'success')
+        except Exception as e:
+            logging.info(f"Error during inserting Source - {e}")
+            flash('Ошибка при добавлении источника', 'danger')
+        finally:
+            session.close()
+
         return redirect(url_for('index'))
     
     return render_template('add_source.html')
@@ -82,7 +100,7 @@ def sources_list():
     session.close()
     return render_template('sources.html', sources=sources)
 
-@app.route('/toggle_source/<int:sid>', methods=['POST'])
+@app.route('/toggle_source/<string:sid>', methods=['POST'])
 def toggle_source(sid):
     new_status = request.json.get('is_active')
     session = Session()
@@ -157,53 +175,57 @@ def index():
         comments=comments,
         reposts=reposts
     )
-
 @app.route('/publications')
 def publications():
     session = Session()
-    all_sources = [source[0] for source in session.query(Publication.psource).distinct().all()]
-    # Получаем параметры фильтрации из запроса
+
+    all_sources = session.query(Source).all()
+
     source_filter = request.args.get('source')
+    source_type = request.args.get('source_type')
     date_from = request.args.get('date_from')
     date_to = request.args.get('date_to')
     sentiment = request.args.get('sentiment')
     mau_only = request.args.get('mau_only') == 'on'
-    sort_field = request.args.get('sort', 'views')  # По умолчанию сортируем по просмотрам
-    sort_order = request.args.get('order', 'desc')  # По умолчанию сортируем по убыванию
-    
-    # Строим запрос с фильтрами
-    query = session.query(Publication)
+    sort_field = request.args.get('sort', 'views')
+    sort_order = request.args.get('order', 'desc')
+
+    query = session.query(Publication).options(joinedload(Publication.source))
+
     if source_filter:
-        query = query.filter(Publication.psource.ilike(f"%{source_filter}%"))
-    
+        query = query.join(Publication.source).filter(Source.sname.ilike(f"%{source_filter}%"))
+
+    if source_type and source_type != 'all':
+        query = query.join(Publication.source).filter(Source.source_type == source_type)
+
     if date_from:
-        date_from = datetime.strptime(date_from, '%Y-%m-%d')
-        query = query.filter(Publication.pdate >= date_from)
-    
+        query = query.filter(Publication.pdate >= datetime.strptime(date_from, '%Y-%m-%d'))
+
     if date_to:
-        date_to = datetime.strptime(date_to, '%Y-%m-%d')
-        query = query.filter(Publication.pdate <= date_to)
-    
+        query = query.filter(Publication.pdate <= datetime.strptime(date_to, '%Y-%m-%d'))
+
     if sentiment and sentiment != 'all':
         query = query.filter(Publication.assesment == sentiment)
-    
+
     if mau_only:
         query = query.filter(Publication.mau_mentioned == True)
-    
-    # Определяем направление сортировки
-    if sort_field in ['views', 'likes', 'comments', 'reposts']:
+
+    sortable_fields = ['views', 'likes', 'comments', 'reposts', 'pdate']
+    if sort_field in sortable_fields:
         sort_column = getattr(Publication, sort_field)
-        if sort_order == 'asc':
-            query = query.order_by(sort_column.asc())
-        else:
-            query = query.order_by(sort_column.desc())
+        query = query.order_by(sort_column.asc() if sort_order == 'asc' else sort_column.desc())
     else:
-        # Сортируем по дате публикации (новые сначала), если сортировка не указана
         query = query.order_by(Publication.pdate.desc())
-    
-    publications = query.all()
+
+    publications_list = query.all()
     session.close()
-    return render_template('publications.html', publications=publications, all_sources = all_sources)
+
+    return render_template('publications.html',
+                           publications=publications_list,
+                           all_sources=all_sources,
+                           current_sort=sort_field,
+                           current_order=sort_order,
+                           reverse_order='asc' if sort_order == 'desc' else 'desc')
 
 @app.route('/publication/<int:pid>')
 def publication_detail(pid):
@@ -281,3 +303,4 @@ def inject_now():
 
 if __name__ == '__main__':
     app.run(debug=True)
+    #get_source("https://t.me/Arctic_TV")

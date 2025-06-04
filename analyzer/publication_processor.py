@@ -4,7 +4,7 @@ import logging
 import re
 
 def check_university_mentions(text:str):
-    pattern = r'''(?ix)  # i: ignore case, x: allow comments and whitespace
+    pattern = r'''(?ix)  
     \b(
         мау |                                      # аббревиатура
         мурманск(ий|ого|ому|им|ом|ом|ие|их|ими)?    # прилагательное "Мурманский" во всех падежах
@@ -19,7 +19,6 @@ def check_university_mentions(text:str):
     return re.search(pattern, text) is not None
 
 def get_assesment(publications:list):
-    p
     analyzed_publications = []
     for publication in publications:
         analyzed_publication = {"url" : None, 

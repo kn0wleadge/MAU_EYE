@@ -11,4 +11,5 @@ DejaVuSansCondensed-BoldOblique.ttf
 DejaVuSansCondensed-Oblique.ttf
 *.pdf
 *.pptx
-.session
+*.session
+my_account.session

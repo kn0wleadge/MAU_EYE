@@ -8,8 +8,25 @@ import json
 import asyncio
 import logging
 from .models import async_session
-from .models import VkPostsRaw, WebsiteNewsRaw, Publication, Source
+from .models import VkPostsRaw, WebsiteNewsRaw, Publication, Source, User
 logging.basicConfig()
+async def get_user(tg_id):
+    async with async_session() as session:
+        user = await session.execute(select(User).where(User.tg_id == tg_id))
+        print(f"User - {user}")
+        return user.scalar()
+    
+async def add_user(tg_id, rdate):
+    async with async_session() as session:
+        if (await get_user(tg_id) == None):
+            await session.execute(insert(User).values(tg_id = tg_id, registration_date = datetime.datetime.fromtimestamp(int(rdate))))
+            await session.commit()
+        else:
+            print(f"User {tg_id} already exists")
+async def all_users():
+    async with async_session() as session:
+        r = await session.execute(select(User))
+        return r.scalars().all()
 
 async def get_vk_post(id):
     post = None
@@ -86,14 +103,14 @@ async def update_publication(url:str, views, likes, comments,reposts):
     async with async_session() as session:
         await session.execute(update(Publication).where(Publication.purl == url).values(views = views, likes = likes, comments = comments, reposts = reposts))
         await session.commit()
-async def insert_publication(text:str, url:str, post_date:DateTime, source:str, parse_date:DateTime, views:int, likes:int, comments:int, reposts:int):
+async def insert_publication(pid,text:str, url:str, post_date:DateTime, sid:int, parse_date:DateTime, views:int, likes:int, comments:int, reposts:int):
     async with async_session() as session:
         try:
             if (await get_publication(url) == None):
-                await session.execute(insert(Publication).values(ptext = text,
+                await session.execute(insert(Publication).values(pid = pid,ptext = text,
                                                                     purl = url,
                                                                     pdate = datetime.datetime.fromtimestamp(int(post_date)),
-                                                                    psource = source,
+                                                                    sid = sid,
                                                                     parse_date = datetime.datetime.fromtimestamp(int(parse_date)),
                                                                     views = views,
                                                                     likes = likes,
@@ -135,6 +152,7 @@ async def get_last_publications(minutes: int):
     async with async_session() as session:
         try:
             now = datetime.datetime.now() 
+            print(f"Cur date - {now}")
             time_threshold = now - datetime.timedelta(minutes=minutes)
 
             result = await session.execute(

@@ -4,6 +4,7 @@ from pyrogram import Client
 import datetime
 import logging
 import asyncio
+import time
 # Ваши данные API
 api_id = 23210274
 api_hash = 'b9c5ddc1fce4ccae6436cf2cf52a3fd9'
@@ -24,40 +25,51 @@ def get_chat_info(domain):
 
 async def parse_tg_async(posts, sources: list):
     tg_posts = []
-    async with Client("my_account", api_id=api_id, api_hash=api_hash) as app:
+    app = Client("my_account", api_id=api_id, api_hash=api_hash)
+    await app.start()
+    
+    try:
+        #i = 1
         for source in sources:
-            logging.info(f"Parsing {source}")
             async for post in app.get_chat_history(source["sdomain"], limit=posts):
-                if post.caption is not None:
+                print(f"Parsing {source['sname']} post id - {post.id}")
+                #i+=1
+                #print(post)
+                if post.caption is not None or post.text is not None:
                     reactions = 0
                     if post.reactions:
                         for reaction in post.reactions.reactions:
                             reactions += reaction.count
                     
-                    # replies count (если доступно)
-                    try:
-                        replies = await app.get_discussion_replies_count(source["sdomain"], post.id)
-                    except Exception as e:
-                        logging.warning(f"Failed to get replies count: {e}")
+                        try:
+                            replies = await app.get_discussion_replies_count(source["sdomain"], post.id)
+                        except Exception as e:
+                            logging.warning(f"Failed to get replies count: {e}")
+                            replies = 0
+                    else:
                         replies = 0
-
-                    print(f"chat id - {getattr(post.sender_chat, 'id', 'N/A')} post id - {post.id}")
-                    #print(f"post date - {post.date} type - {type(post.date).__name__}")
                     post_info = {
-                        "id": post.id,
+                        "pid": post.id,
                         "text": post.caption or post.text,
                         "post_url": f"https://t.me/{source['sdomain']}/{post.id}",
                         "post_date": str(int(post.date.timestamp())),
-                        "group_name": post.chat.title if post.chat else None,
+                        "sid": source["sid"],
                         "parse_date": str(int(datetime.datetime.now().timestamp())),
                         "likes": reactions,
                         "views": post.views if hasattr(post, "views") else 0,
                         "comments": replies,
                         "reposts": post.forwards if hasattr(post, "forwards") else 0
-                    }
+                        }
                     logging.info(f"parsing post with url - https://t.me/{source['sdomain']}/{post.id}")
                     tg_posts.append(post_info)
+                    await asyncio.sleep(0.5)  # Используем asyncio.sleep вместо time.sleep
+    finally:
+        await app.stop()  # Явная остановка клиента
+    
     return tg_posts
+
+def parse_tg(posts, sources: list):
+    return asyncio.run(parse_tg_async(posts, sources))
 
 def parse_tg(posts, sources: list):
     return asyncio.run(parse_tg_async(posts, sources))

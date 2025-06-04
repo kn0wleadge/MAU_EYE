@@ -36,28 +36,17 @@ def get_group_data(domain):
     return result
 def add_test_negative_posts():
     return([{
-                "id" : 15,
-                "text" : os.getenv("TEST_POST1_TEXT"),
+                "pid" : 15,
+                "text" : "УНИВЕР ГОВНО БЛЯТЬ ХУЙНЯ ЛЮТАЯ СУКА МЕРЗОСТЬ НАХУЙ МАУ !!!!!!!В Мурманске сотрудники МАГУ получили «условку» за мошенничество МА",
                 "post_url" : "https://vk.com/wall-184888396_23930",
                 "post_date" : str(int(datetime.datetime.strptime("2022.06.24 11:18:00", '%Y.%m.%d %H:%M:%S').timestamp())),
-                "group_name" : "Gorod51",
-                "parse_date" : str(int(datetime.datetime.now().timestamp()))    
-            },
-            {
-                "id" : 16,
-                "text" : os.getenv("TEST_POST2_TEXT"),
-                "post_url" : "https://vk.com/wall-59208578_578017",
-                "post_date" : str(int(datetime.datetime.strptime("2022.06.24 10:15:00", '%Y.%m.%d %H:%M:%S').timestamp())),
-                "group_name" : "SeverPost",
-                "parse_date" : str(int(datetime.datetime.now().timestamp()))    
-            },
-            {
-                "id" : 17,
-                "text" : os.getenv("TEST_POST3_TEXT"),
-                "post_url" : "https://murmansk.mk.ru/incident/2024/08/28/ugolovnoe-delo-po-faktu-vzyatki-v-universitete-vozbudili-v-murmanske.html",
-                "post_date" : str(int(datetime.datetime.strptime("2024.08.28 09:22:00", '%Y.%m.%d %H:%M:%S').timestamp())),
-                "group_name" : "SeverPost",
-                "parse_date" : str(int(datetime.datetime.now().timestamp()))    
+                "sid" : 4185250,
+                "parse_date" : str(int(datetime.datetime.now().timestamp())),
+                "likes" : 100,
+                "views" : 10000000,
+                "comments" : 50,
+                "reposts" : 30
+                  
             }
             ])
 
@@ -69,12 +58,13 @@ async def parse_vk(posts, sources:list):
         for i in range(posts):
             
             post_url = f"https://vk.com/{source['sdomain']}?w=wall-{source['sid']}_{str(group_posts[i]['id'])}"
+            #print(group_posts[i])
             post_info = {
-                "id" : str(group_posts[i]["id"]),
+                "pid" : group_posts[i]["id"],
                 "text" : group_posts[i]["text"],
                 "post_url" : post_url,
                 "post_date" : str(group_posts[i]["date"]),
-                "group_name" : source['sname'],
+                "sid" : source['sid'],
                 "parse_date" : parse_date,
                 "likes" : group_posts[i]["likes"]["count"],
                 "views" : group_posts[i]["views"]["count"],
@@ -82,12 +72,13 @@ async def parse_vk(posts, sources:list):
                 "reposts" : group_posts[i]["reposts"]["count"]
             }
             vk_posts.append(post_info)
-            logging.info(f"Parsed post with url - {post_url}")
+            print(f"Parsed post with url - {post_url}")
         
-    #test_posts = add_test_negative_posts()
-    #for post in test_posts:
-    #    logging.info(f"TEST POST parsed url - {post['post_url']}")
-     #   vk_posts.append(post)
+    test_posts = add_test_negative_posts()
+    for post in test_posts:
+        print(f"TEST POST parsed url - {post['post_url']}")
+        vk_posts.append(post)
+    #print(f"vk_posts - {vk_posts}")
     return vk_posts
 
 if __name__ == '__main__':

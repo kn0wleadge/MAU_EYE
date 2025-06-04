@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 from sqlalchemy import BigInteger, Integer, String,DateTime, ForeignKey, Boolean, BIGINT
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy.ext.asyncio import AsyncAttrs, async_sessionmaker, create_async_engine
 from sqlalchemy import select, insert, update
 
@@ -26,11 +26,11 @@ class WebsiteNewsRaw(Base):
     website_name =  mapped_column(String(100))
 class Publication(Base):
     __tablename__ = "publication"
-    pid:Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    ptext =  mapped_column(String(15555))
-    purl=  mapped_column(String(200))
+    pid = mapped_column(BIGINT)
+    ptext = mapped_column(String(15555))
+    purl = mapped_column(String(200), primary_key=True)
     pdate = mapped_column(DateTime)
-    psource = mapped_column(String(100))
+    sid = mapped_column(BIGINT, ForeignKey("Sources.sid"))
     parse_date = mapped_column(DateTime)
     assesment = mapped_column(String(20))
     mau_mentioned = mapped_column(Boolean)
@@ -38,6 +38,7 @@ class Publication(Base):
     likes = mapped_column(Integer)
     comments = mapped_column(Integer)
     reposts = mapped_column(Integer)
+    source = relationship("Source", backref="publications")
     def __str__(self):
         return (
             f"Publication(pid={self.pid}, "
@@ -60,6 +61,11 @@ class Source(Base):
     is_active = mapped_column(Boolean, default=True)
     added_date = mapped_column(DateTime)
     
+class User(Base):
+    __tablename__ = "users"
+    tg_id = mapped_column(BIGINT, primary_key = True )
+    registration_date = mapped_column(DateTime)
+
 engine = create_async_engine(url=os.getenv("POSTGRESQL_URL"))
 async_session = async_sessionmaker(engine)
 
