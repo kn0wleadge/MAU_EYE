@@ -1,94 +1,111 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Список источников</h1>
-<a href="{{ url_for('add_source') }}" class="btn btn-primary mb-3">Добавить источник</a>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0">Источники мониторинга</h1>
+    <a href="{{ url_for('add_source') }}" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-1"></i>Добавить источник
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-light">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="bi bi-collection me-2"></i>Список источников
+            </h5>
+            <span class="badge bg-primary">
+                Всего: {{ sources|length }}
+            </span>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr class="table-light">
+                        <th>Название</th>
+                        <th>Тип</th>
+                        <th>URL</th>
+                        <th>Дата добавления</th>
+                        <th>Статус</th>
+                        <th>Активность</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for source in sources %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                {% if source.source_type == 'vk' %}
+                                    <img src="{{ url_for('static', filename='icons/vk.png') }}" alt="vk" width="24" class="me-2">
+                                {% elif source.source_type == 'tg' %}
+                                    <img src="{{ url_for('static', filename='icons/telegram.png') }}" alt="telegram" width="24" class="me-2">
+                                {% else %}
+                                    <img src="{{ url_for('static', filename='icons/web.png') }}" alt="website" width="24" class="me-2">
+                                {% endif %}
+                                <span>{{ source.sname }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            {% if source.source_type == 'vk' %}
+                                <span class="badge bg-primary">ВКонтакте</span>
+                            {% elif source.source_type == 'tg' %}
+                                <span class="badge bg-info">Telegram</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Сайт</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ source.surl }}" target="_blank" class="text-decoration-none">
+                                {{ source.surl|truncate(30, True) }}
+                                <i class="bi bi-box-arrow-up-right ms-1"></i>
+                            </a>
+                        </td>
+                        <td>
+                            <div class="text-muted">{{ source.added_date.strftime('%d.%m.%Y') }}</div>
+                        </td>
+                        <td>
+                            {% if source.is_active %}
+                                <span class="badge bg-success">
+                                    <i class="bi bi-check-circle me-1"></i>Активен
+                                </span>
+                            {% else %}
+                                <span class="badge bg-danger">
+                                    <i class="bi bi-x-circle me-1"></i>Неактивен
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="form-check form-switch">
+                                <input type="checkbox" class="form-check-input toggle-source" 
+                                       data-sid="{{ source.sid }}" {% if source.is_active %}checked{% endif %}>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card-footer bg-light">
+        <small class="text-muted">
+            <i class="bi bi-info-circle me-1"></i>Измените активность источника переключателем
+        </small>
+    </div>
+</div>
 
 <style>
-.switch {
-    position: relative;
-    display: inline-block;
-    width: 50px;
-    height: 24px;
-}
-.switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-.slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #ccc;
-    transition: .4s;
-    border-radius: 24px;
-}
-.slider:before {
-    position: absolute;
-    content: "";
-    height: 18px;
-    width: 18px;
-    left: 3px;
-    bottom: 3px;
-    background-color: white;
-    transition: .4s;
-    border-radius: 50%;
-}
-input:checked + .slider {
-    background-color: #28a745;
-}
-input:checked + .slider:before {
-    transform: translateX(26px);
-}
+    .form-switch .form-check-input {
+        width: 3em;
+        height: 1.5em;
+        cursor: pointer;
+    }
+    .form-switch .form-check-input:checked {
+        background-color: var(--success-color);
+        border-color: var(--success-color);
+    }
 </style>
-
-<table class="table">
-    <thead>
-        <tr>
-            <th>Название</th>
-            <th>Тип</th>
-            <th>URL</th>
-            <th>Дата добавления</th>
-            <th>Статус</th>
-            <th>Активность</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for source in sources %}
-        <tr>
-            <td>{{ source.sname }}</td>
-            <td>
-                {% if source.source_type == 'vk' %}
-                    <span class="badge bg-primary">ВК</span>
-                {% elif source.source_type == 'tg' %}
-                    <span class="badge bg-info">Telegram</span>
-                {% else %}
-                    <span class="badge bg-secondary">Сайт</span>
-                {% endif %}
-            </td>
-            <td><a href="{{ source.surl }}" target="_blank">{{ source.surl }}</a></td>
-            <td>{{ source.added_date.strftime('%d.%m.%Y') }}</td>
-            <td>
-                {% if source.is_active %}
-                    <span class="badge bg-success">Активен</span>
-                {% else %}
-                    <span class="badge bg-danger">Неактивен</span>
-                {% endif %}
-            </td>
-            <td>
-                <label class="switch">
-                    <input type="checkbox" class="toggle-source" data-sid="{{ source.sid }}" {% if source.is_active %}checked{% endif %}>
-                    <span class="slider"></span>
-                </label>
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -96,6 +113,12 @@ document.addEventListener('DOMContentLoaded', function () {
         toggle.addEventListener('change', function () {
             const sid = this.getAttribute('data-sid');
             const isActive = this.checked;
+            
+            // Добавляем анимацию загрузки
+            this.disabled = true;
+            const parent = this.closest('td');
+            parent.innerHTML = '<div class="spinner-border spinner-border-sm text-primary"></div>';
+            
             fetch(`/toggle_source/${sid}`, {
                 method: 'POST',
                 headers: {
@@ -107,14 +130,12 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(data => {
                 if (!data.success) {
                     alert('Ошибка при обновлении источника');
-                    this.checked = !isActive;
-                } else {
-                    location.reload();  // Обновим метку "Активен/Неактивен"
                 }
+                location.reload();
             })
             .catch(() => {
                 alert('Ошибка сети');
-                this.checked = !isActive;
+                location.reload();
             });
         });
     });

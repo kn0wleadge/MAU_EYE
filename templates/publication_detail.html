@@ -1,85 +1,150 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="card">
-    <div class="card-header bg-primary text-white">
-        <h2>Публикация в {{publication.psource}} от {{ publication.pdate.strftime('%d.%m.%Y %H:%M') }}</h2>
+<div class="card border-0 shadow-lg">
+    <div class="card-header bg-primary text-white py-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2 class="mb-0">
+                <i class="bi bi-newspaper me-2"></i>Детали публикации
+            </h2>
+            <div>
+                <span class="badge bg-light text-dark me-2">
+                    <i class="bi bi-calendar me-1"></i>{{ publication.pdate.strftime('%d.%m.%Y %H:%M') }}
+                </span>
+                <a href="{{ publication.purl }}" target="_blank" class="btn btn-sm btn-light">
+                    <i class="bi bi-box-arrow-up-right me-1"></i>Перейти
+                </a>
+            </div>
+        </div>
     </div>
+    
     <div class="card-body">
         <div class="row">
             <!-- Основная информация -->
-            <div class="col-md-6">
-                <div class="mb-4">
-                    <h5 class="card-title">Основная информация</h5>
-                    <hr>
-                    <div class="mb-3">
-                        <strong>Источник:</strong>
-                        <p class="mt-1">{{ publication.psource }}</p>
+            <div class="col-lg-6 mb-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">
+                            <i class="bi bi-info-circle me-2"></i>Основная информация
+                        </h5>
                     </div>
-                    
-                    <div class="mb-3">
-                        <strong>Тональность:</strong>
-                        <p class="mt-1">
-                            <span class="badge 
-                                {% if publication.assesment == 'positive' %}bg-success
-                                {% elif publication.assesment == 'negative' %}bg-danger
-                                {% else %}bg-secondary{% endif %}">
-                                {{ publication.assesment }}
-                            </span>
-                        </p>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <strong>Упоминание университета:</strong>
-                        <p class="mt-1">
-                            {% if publication.mau_mentioned %}
-                                <span class="badge bg-primary">Да</span>
-                            {% else %}
-                                <span class="badge bg-secondary">Нет</span>
-                            {% endif %}
-                        </p>
+                    <div class="card-body">
+                        <div class="mb-4">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-link-45deg fs-5 text-muted me-3"></i>
+                                <div>
+                                    <h6 class="mb-0 text-muted">Источник</h6>
+                                    <p class="mb-0 fw-medium">{{ publication.psource }}</p>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-emoji-smile fs-5 text-muted me-3"></i>
+                                <div>
+                                    <h6 class="mb-0 text-muted">Тональность</h6>
+                                    <p class="mb-0">
+                                        <span class="badge 
+                                            {% if publication.assesment == 'positive' %}bg-success
+                                            {% elif publication.assesment == 'negative' %}bg-danger
+                                            {% else %}bg-secondary{% endif %}">
+                                            {% if publication.assesment == 'positive' %}
+                                                <i class="bi bi-emoji-smile me-1"></i>
+                                            {% elif publication.assesment == 'negative' %}
+                                                <i class="bi bi-emoji-frown me-1"></i>
+                                            {% else %}
+                                                <i class="bi bi-emoji-neutral me-1"></i>
+                                            {% endif %}
+                                            {{ publication.assesment }}
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-building fs-5 text-muted me-3"></i>
+                                <div>
+                                    <h6 class="mb-0 text-muted">Упоминание университета</h6>
+                                    <p class="mb-0">
+                                        {% if publication.mau_mentioned %}
+                                            <span class="badge bg-primary">
+                                                <i class="bi bi-check-circle me-1"></i>Да
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">
+                                                <i class="bi bi-x-circle me-1"></i>Нет
+                                            </span>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
             
             <!-- Статистика охвата -->
-            <div class="col-md-6">
-                <div class="mb-4">
-                    <h5 class="card-title">Статистика охвата</h5>
-                    <hr>
-                    <div class="row">
-                        <div class="col-6 mb-3">
-                            <div class="card bg-light">
-                                <div class="card-body text-center">
-                                    <h6 class="card-subtitle mb-2 text-muted">Просмотры</h6>
-                                    <h4 class="card-title text-primary">{{ "{:,}".format(publication.views).replace(",", " ") if publication.views else 0 }}</h4>
+            <div class="col-lg-6 mb-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">
+                            <i class="bi bi-bar-chart me-2"></i>Статистика охвата
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-6 mb-3">
+                                <div class="card border-0 bg-light-primary">
+                                    <div class="card-body text-center py-3">
+                                        <div class="mb-2">
+                                            <i class="bi bi-eye-fill fs-4 text-primary"></i>
+                                        </div>
+                                        <h6 class="text-muted mb-1">Просмотры</h6>
+                                        <h4 class="mb-0 fw-bold text-primary">
+                                            {{ "{:,}".format(publication.views).replace(",", " ") if publication.views else 0 }}
+                                        </h4>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        
-                        <div class="col-6 mb-3">
-                            <div class="card bg-light">
-                                <div class="card-body text-center">
-                                    <h6 class="card-subtitle mb-2 text-muted">Лайки</h6>
-                                    <h4 class="card-title text-primary">{{ "{:,}".format(publication.likes).replace(",", " ") if publication.likes else 0 }}</h4>
+                            
+                            <div class="col-6 mb-3">
+                                <div class="card border-0 bg-light-primary">
+                                    <div class="card-body text-center py-3">
+                                        <div class="mb-2">
+                                            <i class="bi bi-hand-thumbs-up-fill fs-4 text-primary"></i>
+                                        </div>
+                                        <h6 class="text-muted mb-1">Лайки</h6>
+                                        <h4 class="mb-0 fw-bold text-primary">
+                                            {{ "{:,}".format(publication.likes).replace(",", " ") if publication.likes else 0 }}
+                                        </h4>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        
-                        <div class="col-6 mb-3">
-                            <div class="card bg-light">
-                                <div class="card-body text-center">
-                                    <h6 class="card-subtitle mb-2 text-muted">Комментарии</h6>
-                                    <h4 class="card-title text-primary">{{ "{:,}".format(publication.comments).replace(",", " ") if publication.comments else 0 }}</h4>
+                            
+                            <div class="col-6">
+                                <div class="card border-0 bg-light-primary">
+                                    <div class="card-body text-center py-3">
+                                        <div class="mb-2">
+                                            <i class="bi bi-chat-left-text-fill fs-4 text-primary"></i>
+                                        </div>
+                                        <h6 class="text-muted mb-1">Комментарии</h6>
+                                        <h4 class="mb-0 fw-bold text-primary">
+                                            {{ "{:,}".format(publication.comments).replace(",", " ") if publication.comments else 0 }}
+                                        </h4>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        
-                        <div class="col-6 mb-3">
-                            <div class="card bg-light">
-                                <div class="card-body text-center">
-                                    <h6 class="card-subtitle mb-2 text-muted">Репосты</h6>
-                                    <h4 class="card-title text-primary">{{ "{:,}".format(publication.reposts).replace(",", " ") if publication.reposts else 0 }}</h4>
+                            
+                            <div class="col-6">
+                                <div class="card border-0 bg-light-primary">
+                                    <div class="card-body text-center py-3">
+                                        <div class="mb-2">
+                                            <i class="bi bi-share-fill fs-4 text-primary"></i>
+                                        </div>
+                                        <h6 class="text-muted mb-1">Репосты</h6>
+                                        <h4 class="mb-0 fw-bold text-primary">
+                                            {{ "{:,}".format(publication.reposts).replace(",", " ") if publication.reposts else 0 }}
+                                        </h4>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -88,30 +153,46 @@
             </div>
         </div>
         
-        <div class="mb-4">
-            <h5 class="card-title">Текст публикации</h5>
-            <hr>
-            <div class="card bg-light">
-                <div class="card-body">
-                    <p class="card-text">{{ publication.ptext }}</p>
+        <!-- Текст публикации -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">
+                    <i class="bi bi-text-paragraph me-2"></i>Текст публикации
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="p-3 bg-light rounded">
+                    <p class="mb-0">{{ publication.ptext }}</p>
                 </div>
             </div>
         </div>
         
+        <!-- Футер -->
         <div class="d-flex justify-content-between align-items-center">
             <div>
-                <strong>Ссылка на публикацию:</strong>
-                <a href="{{ publication.purl }}" target="_blank" class="ms-2">{{ publication.purl|truncate(50, True) }}</a>
+                <a href="{{ publication.purl }}" target="_blank" class="text-decoration-none">
+                    <i class="bi bi-link-45deg me-1"></i>
+                    <span>{{ publication.purl|truncate(50, True) }}</span>
+                </a>
             </div>
             <div>
-                <a href="/publications" class="btn btn-outline-primary">
-                    <i class="bi bi-arrow-left"></i> Назад к списку
+                <a href="/publications" class="btn btn-outline-secondary me-2">
+                    <i class="bi bi-arrow-left me-1"></i>Назад к списку
                 </a>
-                <a href="{{ publication.purl }}" target="_blank" class="btn btn-primary ms-2">
-                    <i class="bi bi-box-arrow-up-right"></i> Перейти к публикации
+                <a href="{{ publication.purl }}" target="_blank" class="btn btn-primary">
+                    <i class="bi bi-box-arrow-up-right me-1"></i>Перейти к публикации
                 </a>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    .bg-light-primary {
+        background-color: rgba(67, 97, 238, 0.08);
+    }
+    .card-header.bg-light {
+        background-color: #f8f9fa !important;
+    }
+</style>
 {% endblock %}

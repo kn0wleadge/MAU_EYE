@@ -6,40 +6,134 @@
     <title>Мониторинг СМИ - Пресс-служба университета</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        :root {
+            --primary-color: #0064be;
+            --secondary-color: #3f37c9;
+            --accent-color: #4895ef;
+            --light-color: #f8f9ff;
+            --dark-color: #2b2d42;
+            --success-color: #4cc9f0;
+            --danger-color: #f72585;
+            --warning-color: #f8961e;
+            --info-color: #43aa8b;
+        }
+        
         body {
-            padding-top: 20px;
-            background-color: #f8f9fa;
+            background-color: #f5f7ff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--dark-color);
+            line-height: 1.6;
         }
-        .navbar-brand {
-            font-weight: 600;
+        
+        .navbar {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
+        
+        .navbar-brand, .nav-link {
+            color: white !important;
+            font-weight: 500;
+        }
+        
+        .nav-link:hover {
+            opacity: 0.9;
+        }
+        
         .main-container {
             background: white;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            padding: 30px;
             margin-bottom: 30px;
+            border: 1px solid rgba(0,0,0,0.05);
         }
+        
+        h1, h2,h4, h6 {
+            color: var(--dark-color);
+            font-weight: 600;
+        }
+        h5,h2 {
+            color: var(--light-color);
+            font-weight:600
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            font-weight: 500;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+        
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+        
+        .card-header {
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 10px 10px 0 0 !important;
+        }
+        
+        .table {
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .badge {
+            font-weight: 500;
+            padding: 5px 10px;
+            border-radius: 8px;
+        }
+        
+        .bg-success {
+            background-color: var(--success-color) !important;
+        }
+        
+        .bg-danger {
+            background-color: var(--danger-color) !important;
+        }
+        
+        .form-control, .form-select {
+            border-radius: 8px;
+            padding: 10px 15px;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.25);
+        }
+        
+        .alert {
+            border-radius: 8px;
+        }
+        
         .footer {
             text-align: center;
             padding: 20px 0;
             color: #6c757d;
             font-size: 0.9rem;
         }
-        .chart-container {
-            position: relative;
-            height: 250px;
-            margin-bottom: 20px;
-        }
     </style>
 </head>
 <body>
     <div class="container">
         <!-- Навигация -->
-        <nav class="navbar navbar-expand-lg navbar-light bg-light rounded mb-4">
+        <nav class="navbar navbar-expand-lg rounded mb-4">
             <div class="container-fluid">
                 <a class="navbar-brand" href="{{ url_for('index') }}">Мониторинг СМИ</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
