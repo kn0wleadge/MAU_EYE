@@ -113,6 +113,22 @@ def toggle_source(sid):
     else:
         session.close()
         return {'success': False, 'error': 'Источник не найден'}
+@app.route('/delete_publication/<int:pid>', methods=['POST'])
+def delete_publication(pid):
+    session = Session()
+    try:
+        publication = session.query(Publication).filter_by(pid=pid).first()
+        if publication:
+            publication.deleted = True
+            session.commit()
+            return {'success': True}
+        else:
+            return {'success': False, 'error': 'Публикация не найдена'}, 404
+    except Exception as e:
+        session.rollback()
+        return {'success': False, 'error': str(e)}, 500
+    finally:
+        session.close()
 @app.route('/')
 def index():
     session = Session()
@@ -192,7 +208,7 @@ def publications():
     sort_field = request.args.get('sort', 'views')
     sort_order = request.args.get('order', 'desc')
 
-    query = session.query(Publication).options(joinedload(Publication.source))
+    query = session.query(Publication).filter(Publication.deleted == False).options(joinedload(Publication.source))
 
     if source_filter:
         query = query.join(Publication.source).filter(Source.sname.ilike(f"%{source_filter}%"))
@@ -232,7 +248,7 @@ def publications():
 @app.route('/publication/<int:pid>')
 def publication_detail(pid):
     session = Session()
-    publication = session.query(Publication).filter_by(pid=pid).first()
+    publication = session.query(Publication).options(joinedload(Publication.source)).filter_by(pid=pid).first()
     session.close()
     return render_template('publication_detail.html', publication=publication)
 @app.route('/generate_report')
