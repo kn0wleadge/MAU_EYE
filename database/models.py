@@ -33,6 +33,7 @@ class Publication(Base):
     sid = mapped_column(BIGINT, ForeignKey("Sources.sid"))
     parse_date = mapped_column(DateTime)
     assesment = mapped_column(String(20))
+    deleted = mapped_column(Boolean)
     mau_mentioned = mapped_column(Boolean)
     views = mapped_column(Integer)
     likes = mapped_column(Integer)

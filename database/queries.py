@@ -99,6 +99,10 @@ async def get_publication(url:str):
             print(f'Error during select from Publication - {e}')
     
     return news
+async def delete_publication(url:str):
+     async with async_session() as session:
+        await session.execute(update(Publication).where(Publication.purl == url).values(deleted = True))
+        await session.commit()
 async def update_publication(url:str, views, likes, comments,reposts):
     async with async_session() as session:
         await session.execute(update(Publication).where(Publication.purl == url).values(views = views, likes = likes, comments = comments, reposts = reposts))
@@ -115,7 +119,8 @@ async def insert_publication(pid,text:str, url:str, post_date:DateTime, sid:int,
                                                                     views = views,
                                                                     likes = likes,
                                                                     comments = comments,
-                                                                    reposts = reposts
+                                                                    reposts = reposts,
+                                                                    deleted = False
                                                                     ))
                 await session.commit()
             else:

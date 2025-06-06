@@ -124,7 +124,8 @@ def index():
         func.count(Publication.pid).label('count')
     ).filter(
         Publication.mau_mentioned == True,
-        Publication.pdate >= week_ago
+        Publication.pdate >= week_ago,
+        Publication.deleted == False
     ).group_by(
         func.date(Publication.pdate)
     ).all()
@@ -148,7 +149,8 @@ def index():
         func.avg(Publication.reposts).label('avg_reposts')
     ).filter(
         Publication.mau_mentioned == True,
-        Publication.pdate >= week_ago
+        Publication.pdate >= week_ago,
+        Publication.deleted == False
     ).group_by(
         func.date(Publication.pdate)
     ).all()
