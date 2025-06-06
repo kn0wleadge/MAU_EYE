@@ -39,12 +39,12 @@ async def parse_publications():
     print("Starting parsing...")
     vk_sources = await get_all_active_vk_sources()
     print(f"vk sources - {len(vk_sources)}")
-    posts = await vk_parser.parse_vk(10,vk_sources)
+    posts = await vk_parser.parse_vk(50,vk_sources)
     news_links = website_parsers.get_tv21news_urls()
     news = await parse_multiple_news_async(news_links, "tv21")
     tg_sources = await get_all_active_tg_sources()
     print(f"tg sources - {len(tg_sources)}")
-    tg_posts = await parse_tg_async(1, tg_sources)
+    tg_posts = await parse_tg_async(15, tg_sources)
     #TODO - Зарефакторить словари, которые собирают парсеры, чтобы они были одного формата
     # for n in news:
     #     await insert_publication(text=n["ntext"],
