@@ -10,7 +10,6 @@
                         date_to=request.args.get('date_to', ''),
                         sentiment=request.args.get('sentiment', 'all'),
                         source_type=request.args.get('source_type', 'all'),
-                        mau_only='on' if request.args.get('mau_only') == 'on' else '',
                         sort=field_name,
                         order=order_to_use) }}"
        class="text-decoration-none d-flex align-items-center {% if is_current %}text-primary fw-bold{% else %}text-dark{% endif %}">
@@ -27,17 +26,15 @@
     <div class="d-flex gap-2">
         <button class="btn btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapse"
                  {% if request.args.get('source') or request.args.get('date_from') or request.args.get('date_to') or
-                     request.args.get('sentiment') != 'all' or request.args.get('source_type') != 'all' or
-                     request.args.get('mau_only') == 'on' %}aria-expanded="true"{% endif %}>
+                     request.args.get('sentiment') != 'all' or request.args.get('source_type') != 'all' %}aria-expanded="true"{% endif %}>
             <i class="bi bi-funnel me-1"></i>Фильтры
         </button>
     </div>
 </div>
 
-<!-- Фильтры (остаются открытыми если применены) -->
+<!-- Фильтры -->
 <div class="collapse mb-4 {% if request.args.get('source') or request.args.get('date_from') or request.args.get('date_to') or
-                             request.args.get('sentiment') != 'all' or request.args.get('source_type') != 'all' or
-                             request.args.get('mau_only') == 'on' %}show{% endif %}" id="filterCollapse">
+                             request.args.get('sentiment') != 'all' or request.args.get('source_type') != 'all' %}show{% endif %}" id="filterCollapse">
     <div class="card border-0 shadow-sm">
         <div class="card-body">
             <form method="get" class="row g-3">
@@ -86,14 +83,6 @@
                     </select>
                 </div>
 
-                <div class="col-md-3 d-flex align-items-end">
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" id="mau_only" name="mau_only"
-                               {% if request.args.get('mau_only') == 'on' %}checked{% endif %}>
-                        <label class="form-check-label" for="mau_only">Только с упоминанием</label>
-                    </div>
-                </div>
-
                 <div class="col-md-2 d-flex align-items-end">
                     <button type="submit" class="btn btn-primary w-100">
                         <i class="bi bi-check-lg me-1"></i>Применить
@@ -119,7 +108,7 @@
                     <th width="120">{{ sort_link('pdate', 'Дата') }}</th>
                     <th>Источник</th>
                     <th width="80">Тип</th>
-                    <th width="140">Упоминание</th>
+                    <th width="200">Ключевые слова</th>
                     <th width="120">{{ sort_link('views', 'Просмотры') }}</th>
                     <th width="120">{{ sort_link('likes', 'Лайки') }}</th>
                     <th width="140">{{ sort_link('comments', 'Комментарии') }}</th>
@@ -129,7 +118,9 @@
             </thead>
             <tbody>
                 {% for pub in publications %}
-                <tr class="{% if pub.assesment == 'negative' %}table-danger{% endif %}" style="{% if pub.assesment == 'negative' %}background-color: rgba(220, 53, 69, 0.15) !important;{% endif %}">
+                <tr class="{% if pub.assesment == 'negative' %}table-danger{% elif pub.assesment == 'positive' %}table-success{% endif %}" 
+                    style="{% if pub.assesment == 'negative' %}background-color: rgba(220, 53, 69, 0.15) !important;
+                           {% elif pub.assesment == 'positive' %}background-color: rgba(25, 135, 84, 0.15) !important;{% endif %}">
                     <td>
                         <div class="fw-medium">{{ pub.pdate.strftime('%d.%m.%Y') }}</div>
                         <small class="text-muted">{{ pub.pdate.strftime('%H:%M') }}</small>
@@ -156,15 +147,13 @@
                         {% endif %}
                     </td>
                     <td>
-                        {% if pub.mau_mentioned %}
-                            <span class="badge bg-primary">
-                                <i class="bi bi-check-circle me-1"></i>Да
-                            </span>
-                        {% else %}
-                            <span class="badge bg-secondary">
-                                <i class="bi bi-x-circle me-1"></i>Нет
-                            </span>
-                        {% endif %}
+                       <div class="d-flex flex-wrap gap-1">
+                            {% for keyword_rel in pub.keyword_in_publication %}
+                                <span class="badge bg-info">{{ keyword_rel.keyword.word }}</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Не найдено</span>
+                            {% endfor %}
+                        </div>
                     </td>
                     <td class="fw-medium">{{ "{:,}".format(pub.views).replace(",", " ") if pub.views else 0 }}</td>
                     <td class="fw-medium">{{ "{:,}".format(pub.likes).replace(",", " ") if pub.likes else 0 }}</td>

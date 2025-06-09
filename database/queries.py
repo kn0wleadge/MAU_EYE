@@ -8,7 +8,7 @@ import json
 import asyncio
 import logging
 from .models import async_session
-from .models import VkPostsRaw, WebsiteNewsRaw, Publication, Source, User
+from .models import Publication, Source, User, Keywords, Keyword_In_Publication
 logging.basicConfig()
 async def get_user(tg_id):
     async with async_session() as session:
@@ -16,6 +16,22 @@ async def get_user(tg_id):
         print(f"User - {user}")
         return user.scalar()
     
+async def get_keywords():
+    async with async_session() as session:
+        r = await session.execute(select(Keywords).where(Keywords.is_active==True))
+        return r.scalars().all()
+async def add_keyword_in_publication(pid, keyword):
+    async with async_session() as session:
+        await session.execute(insert(Keyword_In_Publication).values(pid = pid, word = keyword))
+        await session.commit()
+async def get_publications_keyword(pid):
+    async with async_session() as session:
+        r = await session.execute(select(Keyword_In_Publication).where(Keyword_In_Publication.pid == pid))
+        keywords = []
+        for row in r.scalars().all():
+            keywords.append(row.word)
+        return keywords
+
 async def add_user(tg_id, rdate):
     async with async_session() as session:
         if (await get_user(tg_id) == None):
@@ -210,9 +226,7 @@ async def get_all_active_tg_sources():
                                "added_date":row.added_date})
         return sources
 async def test():
-    last_publications = await get_last_publications(60)
-    print("Printing publications")
-    for pub in last_publications:
-        print(pub)
+    list = await get_publications_keyword(2102746)
+    print(list)
 if __name__ == "__main__":
     asyncio.run(test())

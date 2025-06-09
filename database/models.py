@@ -8,25 +8,9 @@ from sqlalchemy import select, insert, update
 
 class Base(AsyncAttrs, DeclarativeBase):
     pass
-class VkPostsRaw(Base):
-    __tablename__ = 'vk_posts_raw'
-    pid:Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    ptext:Mapped[str] = mapped_column(String(15895))
-    purl:Mapped[str] = mapped_column(String(150))
-    pdate = mapped_column(DateTime)
-    pgroup:Mapped[str] = mapped_column(String(48))
-    parse_date = mapped_column(DateTime)
-class WebsiteNewsRaw(Base):
-    __tablename__ = 'website_news_raw'
-    nid:Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    ntext =  mapped_column(String(15555))
-    nurl=  mapped_column(String(200))
-    ndate = mapped_column(DateTime)
-    parse_date = mapped_column(DateTime)
-    website_name =  mapped_column(String(100))
 class Publication(Base):
     __tablename__ = "publication"
-    pid = mapped_column(BIGINT)
+    pid = mapped_column(BIGINT, unique=True)
     ptext = mapped_column(String(15555))
     purl = mapped_column(String(200), primary_key=True)
     pdate = mapped_column(DateTime)
@@ -66,6 +50,20 @@ class User(Base):
     __tablename__ = "users"
     tg_id = mapped_column(BIGINT, primary_key = True )
     registration_date = mapped_column(DateTime)
+
+class Keywords(Base):
+    __tablename__ = "keywords"
+    word = mapped_column(String(100), primary_key=True)
+    add_date = mapped_column(DateTime)
+    is_active = mapped_column(Boolean)
+
+class Keyword_In_Publication(Base):
+    __tablename__ = "keyword_in_publication"
+    pid = mapped_column(BIGINT, ForeignKey("publication.pid"), primary_key=True)
+    word = mapped_column(String(100), ForeignKey("keywords.word"), primary_key=True)
+    publication = relationship("Publication", backref="keyword_in_publication")
+    keyword = relationship("Keywords", backref="keyword_in_publication")
+
 
 engine = create_async_engine(url=os.getenv("POSTGRESQL_URL"))
 async_session = async_sessionmaker(engine)

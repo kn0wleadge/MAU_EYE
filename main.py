@@ -19,10 +19,9 @@ from parser.tg_parser import parse_tg_async
 import parser.async_website_parsers as website_parsers
 from parser.async_website_parsers import parse_multiple_news_async
 from database.models import async_main, async_session, Publication, Source
-from database.queries import insert_vk_post,insert_publication, add_assesment,get_all_active_tg_sources, get_last_publications,get_all_active_vk_sources, add_mention, all_users
-
+from database.queries import insert_vk_post,insert_publication, add_assesment,get_all_active_tg_sources, get_last_publications,get_all_active_vk_sources, add_mention, all_users, get_keywords, add_keyword_in_publication, get_publications_keyword
 from tgbot.bot import run_bot, send_negative_publication_notification
-from analyzer.publication_processor import get_assesment, check_university_mentions
+from analyzer.publication_processor import get_assesment, check_university_mentions, check_keyword_mentions
 from analyzer.sentiment_analyze import predict
 #request = f"https://api.vk.com/method/wall.get?access_token={os.getenv("VK_API_TOKEN")}&v={os.getenv("VK_API_VERSION")}&domain={domain}"
 
@@ -39,12 +38,12 @@ async def parse_publications():
     print("Starting parsing...")
     vk_sources = await get_all_active_vk_sources()
     print(f"vk sources - {len(vk_sources)}")
-    posts = await vk_parser.parse_vk(50,vk_sources)
+    posts = await vk_parser.parse_vk(100,vk_sources)
     news_links = website_parsers.get_tv21news_urls()
     news = await parse_multiple_news_async(news_links, "tv21")
     tg_sources = await get_all_active_tg_sources()
     print(f"tg sources - {len(tg_sources)}")
-    tg_posts = await parse_tg_async(15, tg_sources)
+    tg_posts = await parse_tg_async(30, tg_sources)
     #TODO - Зарефакторить словари, которые собирают парсеры, чтобы они были одного формата
     # for n in news:
     #     await insert_publication(text=n["ntext"],
@@ -84,14 +83,22 @@ async def analyze_and_notify():
     logging.info("Checking for negative publications")
     last_publications = await get_last_publications(60)  # Используем вашу существующую функцию
     publications_with_mentions = []
-    
+    keywords = await get_keywords()
     for publication in last_publications:
-        university_mentioned = check_university_mentions(publication.ptext)
-        await add_mention(publication.purl, university_mentioned)
-        
-        if university_mentioned:
+        result_keywords = []
+        for keyword in keywords:
+            #university_mentioned = check_university_mentions(publication.ptext)
+            keyword_mentioned = check_keyword_mentions(keyword.word, publication.ptext)
+            if (keyword_mentioned == True):
+                result_keywords.append(keyword.word)
+        flag = False
+        if (len(result_keywords) != 0):
+            flag = True
+            for keyword in result_keywords:
+                await add_keyword_in_publication(publication.pid,keyword)
+        if (flag == True):
             publications_with_mentions.append(publication)
-    
+            await add_mention(publication.purl,True)
     for publication in publications_with_mentions:
         #print(f"Getting assesment in publication - {publication.ptext}")
         prediction = predict(publication.ptext)
