@@ -64,7 +64,9 @@
             border: none;
             padding: 0.5rem;
         }
-
+        .navbar-brand {
+            color: #FFFFFF !important
+        }
         .navbar-toggler:focus {
             box-shadow: none;
         }
@@ -186,11 +188,6 @@
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('sources_list') }}">
                                 <i class="bi bi-collection me-1"></i>Источники
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('report_options') }}">
-                                <i class="bi bi-file-earmark-bar-graph me-1"></i>Отчеты
                             </a>
                         </li>
                     </ul>

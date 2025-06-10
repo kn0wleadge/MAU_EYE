@@ -37,10 +37,10 @@ def get_group_data(domain):
 def add_test_negative_posts():
     return([{
                 "pid" : 15,
-                "text" : "УНИВЕР ГОВНО БЛЯТЬ ХУЙНЯ ЛЮТАЯ СУКА МЕРЗОСТЬ НАХУЙ МАУ !!!!!!!В Мурманске сотрудники МАГУ получили «условку» за мошенничество МА",
+                "text" : "Этот университет ужасен!!!Хуже общежития, чем в МАУ - я не видел, там ползают тараканы, а еще меня оскорбил охранник!",
                 "post_url" : "https://vk.com/wall-184888396_23930",
                 "post_date" : str(int(datetime.datetime.strptime("2022.06.24 11:18:00", '%Y.%m.%d %H:%M:%S').timestamp())),
-                "sid" : 4185250,
+                "sid" : 181923765,
                 "parse_date" : str(int(datetime.datetime.now().timestamp())),
                 "likes" : 100,
                 "views" : 10000000,

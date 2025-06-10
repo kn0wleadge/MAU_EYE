@@ -45,17 +45,19 @@ class Source(Base):
     source_type = mapped_column(String(20))  # 'vk', 'telegram', 'website'
     is_active = mapped_column(Boolean, default=True)
     added_date = mapped_column(DateTime)
+    deleted = mapped_column(Boolean,default=False)
     
 class User(Base):
     __tablename__ = "users"
     tg_id = mapped_column(BIGINT, primary_key = True )
-    registration_date = mapped_column(DateTime)
+    registration_date = mapped_column(DateTime,default=False)
 
 class Keywords(Base):
     __tablename__ = "keywords"
     word = mapped_column(String(100), primary_key=True)
     add_date = mapped_column(DateTime)
     is_active = mapped_column(Boolean)
+    deleted = mapped_column(Boolean)
 
 class Keyword_In_Publication(Base):
     __tablename__ = "keyword_in_publication"

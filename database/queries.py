@@ -18,7 +18,7 @@ async def get_user(tg_id):
     
 async def get_keywords():
     async with async_session() as session:
-        r = await session.execute(select(Keywords).where(Keywords.is_active==True))
+        r = await session.execute(select(Keywords).where((Keywords.is_active ==True) & (Keywords.deleted == False)))
         return r.scalars().all()
 async def add_keyword_in_publication(pid, keyword):
     async with async_session() as session:
@@ -175,11 +175,12 @@ async def get_last_publications(minutes: int):
             now = datetime.datetime.now() 
             print(f"Cur date - {now}")
             time_threshold = now - datetime.timedelta(minutes=minutes)
-
+#TODO - добавить условие, если упоминания нет
             result = await session.execute(
                 select(Publication).where(
                     Publication.parse_date >= time_threshold,
-                    Publication.parse_date <= now
+                    Publication.parse_date <= now,
+                    Publication.mau_mentioned == None
                 )
             )
             publications = result.scalars().all()
@@ -190,6 +191,7 @@ async def get_last_publications(minutes: int):
     return publications
 
 async def insert_source(name, url, source_type, added_date):
+    #TODO
     async with async_session() as session:
         await session.execute(insert(Source).values(sname = name, 
                                                     surl = url, source_type = source_type,
@@ -199,7 +201,7 @@ async def insert_source(name, url, source_type, added_date):
 async def get_all_active_vk_sources():
     async with async_session() as session:
         logging.info(f"getting VK sources")
-        result = (await session.execute(select(Source).where((Source.is_active == True) & (Source.source_type == 'vk')))).scalars().all()
+        result = (await session.execute(select(Source).where((Source.is_active == True) & (Source.source_type == 'vk') & (Source.deleted == False)))).scalars().all()
         sources = []
         for row in result:
                 source = {"sid":row.sid,
@@ -214,7 +216,7 @@ async def get_all_active_vk_sources():
         return sources
 async def get_all_active_tg_sources():
     async with async_session() as session:
-        result = (await session.execute(select(Source).where((Source.is_active == True) & (Source.source_type == 'tg')))).scalars().all()
+        result = (await session.execute(select(Source).where((Source.is_active == True) & (Source.source_type == 'tg') & (Source.deleted == False)))).scalars().all()
         sources = []
         for row in result:
                 sources.append({"sid":row.sid,

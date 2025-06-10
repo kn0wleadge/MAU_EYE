@@ -117,7 +117,8 @@ def add_source():
             surl=url,
             source_type=source_type,
             sdomain=domain,
-            added_date=datetime.fromtimestamp(int(str(int(datetime.now().timestamp()))))
+            added_date=datetime.fromtimestamp(int(str(int(datetime.now().timestamp())))),
+            deleted = False
         )
         session.add(new_source)
         session.commit()
@@ -143,7 +144,8 @@ def add_keyword():
         new_keyword = Keywords(
             word=keyword,
             add_date=datetime.now(),
-            is_active=True
+            is_active=True,
+            deleted = False
         )
         session.add(new_keyword)
         session.commit()
@@ -309,11 +311,43 @@ def publications():
                          current_order=sort_order,
                          reverse_order='asc' if sort_order == 'desc' else 'desc')
 
+@app.route('/delete_source/<int:sid>', methods=['POST'])
+def delete_source(sid):
+    session = Session()
+    try:
+        source = session.query(Source).filter_by(sid=sid).first()
+        if source:
+            source.deleted = True
+            session.commit()
+            return {'success': True}
+        return {'success': False, 'error': 'Source not found'}, 404
+    except Exception as e:
+        session.rollback()
+        return {'success': False, 'error': str(e)}, 500
+    finally:
+        session.close()
+
+@app.route('/delete_keyword/<word>', methods=['POST'])
+def delete_keyword(word):
+    session = Session()
+    try:
+        keyword = session.query(Keywords).filter_by(word=word).first()
+        if keyword:
+            keyword.deleted = True
+            session.commit()
+            return {'success': True}
+        return {'success': False, 'error': 'Keyword not found'}, 404
+    except Exception as e:
+        session.rollback()
+        return {'success': False, 'error': str(e)}, 500
+    finally:
+        session.close()
+
 @app.route('/settings')
 def settings():
     session = Session()
-    sources = session.query(Source).order_by(Source.added_date.desc()).all()
-    keywords = session.query(Keywords).order_by(Keywords.add_date.desc()).all()
+    sources = session.query(Source).filter_by(deleted=False).order_by(Source.added_date.desc()).all()
+    keywords = session.query(Keywords).filter_by(deleted=False).order_by(Keywords.add_date.desc()).all()
     session.close()
     return render_template('settings.html', sources=sources, keywords=keywords)
 

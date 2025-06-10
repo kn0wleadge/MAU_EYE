@@ -68,9 +68,14 @@
                                     {% endif %}
                                 </td>
                                 <td>
-                                    <div class="form-check form-switch">
-                                        <input type="checkbox" class="form-check-input toggle-source" 
-                                               data-sid="{{ source.sid }}" {% if source.is_active %}checked{% endif %}>
+                                    <div class="d-flex align-items-center">
+                                        <div class="form-check form-switch me-2">
+                                            <input type="checkbox" class="form-check-input toggle-source" 
+                                                   data-sid="{{ source.sid }}" {% if source.is_active %}checked{% endif %}>
+                                        </div>
+                                        <button class="btn btn-sm btn-outline-danger delete-source" data-sid="{{ source.sid }}">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -116,9 +121,14 @@
                                     {% endif %}
                                 </td>
                                 <td>
-                                    <div class="form-check form-switch">
-                                        <input type="checkbox" class="form-check-input toggle-keyword" 
-                                               data-word="{{ keyword.word }}" {% if keyword.is_active %}checked{% endif %}>
+                                    <div class="d-flex align-items-center">
+                                        <div class="form-check form-switch me-2">
+                                            <input type="checkbox" class="form-check-input toggle-keyword" 
+                                                   data-word="{{ keyword.word }}" {% if keyword.is_active %}checked{% endif %}>
+                                        </div>
+                                        <button class="btn btn-sm btn-outline-danger delete-keyword" data-word="{{ keyword.word }}">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -229,15 +239,11 @@
                                 </li>
                                 <li class="list-group-item border-0 px-0 py-2">
                                     <i class="bi bi-check-circle-fill text-success me-2"></i>
-                                    Добавляйте различные формы слов (например, "университет", "универа")
+                                    Добавляйте слова в именительном падеже
                                 </li>
                                 <li class="list-group-item border-0 px-0 py-2">
                                     <i class="bi bi-check-circle-fill text-success me-2"></i>
                                     Избегайте слишком общих слов, которые могут давать ложные срабатывания
-                                </li>
-                                <li class="list-group-item border-0 px-0 py-2">
-                                    <i class="bi bi-check-circle-fill text-success me-2"></i>
-                                    Регулярно обновляйте список ключевых слов
                                 </li>
                             </ul>
                         </div>
@@ -311,6 +317,78 @@ document.addEventListener('DOMContentLoaded', function () {
                     alert('Ошибка при обновлении ключевого слова');
                 }
                 location.reload();
+            })
+            .catch(() => {
+                alert('Ошибка сети');
+                location.reload();
+            });
+        });
+    });
+
+    // Delete source functionality
+    document.querySelectorAll('.delete-source').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            if (!confirm('Вы уверены, что хотите удалить этот источник?')) {
+                return;
+            }
+            
+            const sid = this.getAttribute('data-sid');
+            const parentRow = this.closest('tr');
+            parentRow.style.opacity = '0.5';
+            this.disabled = true;
+            this.innerHTML = '<i class="bi bi-hourglass"></i>';
+            
+            fetch(`/delete_source/${sid}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ deleted: true }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    parentRow.remove();
+                } else {
+                    alert('Ошибка при удалении источника');
+                    location.reload();
+                }
+            })
+            .catch(() => {
+                alert('Ошибка сети');
+                location.reload();
+            });
+        });
+    });
+
+    // Delete keyword functionality
+    document.querySelectorAll('.delete-keyword').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            if (!confirm('Вы уверены, что хотите удалить это ключевое слово?')) {
+                return;
+            }
+            
+            const word = this.getAttribute('data-word');
+            const parentRow = this.closest('tr');
+            parentRow.style.opacity = '0.5';
+            this.disabled = true;
+            this.innerHTML = '<i class="bi bi-hourglass"></i>';
+            
+            fetch(`/delete_keyword/${encodeURIComponent(word)}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ deleted: true }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    parentRow.remove();
+                } else {
+                    alert('Ошибка при удалении ключевого слова');
+                    location.reload();
+                }
             })
             .catch(() => {
                 alert('Ошибка сети');
