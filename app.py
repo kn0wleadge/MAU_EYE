@@ -12,12 +12,16 @@ from parser.tg_parser import get_chat_info
 from typing import List, Union
 import logging
 import re
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
 logging.basicConfig()
 logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)  # логи SQL-запросов
 app = Flask(__name__)
 app.secret_key = 'key!!!'
-DATABASE_URL = "postgresql+psycopg2://postgres:Kapibara@localhost:5432/MAU_EYE"
-engine = create_engine(DATABASE_URL)
+#DATABASE_URL = "postgresql+psycopg2://postgres:Kapibara@localhost:5432/MAU_EYE"
+engine = create_engine(url=os.getenv("DATABASE_URL_APP"))
 Session = sessionmaker(bind=engine)
 
 

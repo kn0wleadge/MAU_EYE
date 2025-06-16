@@ -39,18 +39,9 @@ async def parse_publications():
     vk_sources = await get_all_active_vk_sources()
     print(f"vk sources - {len(vk_sources)}")
     posts = await vk_parser.parse_vk(100,vk_sources)
-    news_links = website_parsers.get_tv21news_urls()
-    news = await parse_multiple_news_async(news_links, "tv21")
     tg_sources = await get_all_active_tg_sources()
     print(f"tg sources - {len(tg_sources)}")
     tg_posts = await parse_tg_async(30, tg_sources)
-    #TODO - Зарефакторить словари, которые собирают парсеры, чтобы они были одного формата
-    # for n in news:
-    #     await insert_publication(text=n["ntext"],
-    #                        url=n['nurl'],
-    #                        post_date=n['ndate'],
-    #                        source=n['website_name'],
-    #                        parse_date=n['parse_date'])
     for post in posts:
         await insert_publication(pid = post["pid"],
                                  text = post["text"],
@@ -76,12 +67,11 @@ async def parse_publications():
                            reposts = post["reposts"])
     print(f"Собрано {len(posts)} публикаций ВК")
     print(f"Собрано {len(tg_posts)} публикаций ТГ")
-    #await insert_post("TEXT", "URL", datetime.datetime.now(),"GROUP")
 
 async def analyze_and_notify():
     """Анализ публикаций и отправка уведомлений"""
     logging.info("Checking for negative publications")
-    last_publications = await get_last_publications(60)  # Используем вашу существующую функцию
+    last_publications = await get_last_publications(60)  
     publications_with_mentions = []
     keywords = await get_keywords()
     for publication in last_publications:
@@ -117,7 +107,7 @@ async def run_monitoring():
         try:
             await parse_publications()
             await analyze_and_notify()
-            await asyncio.sleep(60)  # Проверка каждую минуту
+            await asyncio.sleep(60) 
         except Exception as e:
             logging.error(f"Monitoring error: {e}")
             await asyncio.sleep(60)

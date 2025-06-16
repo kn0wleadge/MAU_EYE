@@ -35,18 +35,78 @@ def get_group_data(domain):
               "name": response.json()['response']['groups'][0]['name']}
     return result
 def add_test_negative_posts():
-    return([{
-                "pid" : 15,
-                "text" : "Этот университет ужасен!!!Хуже общежития, чем в МАУ - я не видел, там ползают тараканы, а еще меня оскорбил охранник!",
-                "post_url" : "https://vk.com/wall-184888396_23930",
+    return([#{
+    #             "pid" : 15,
+    #             "text" : "Этот университет ужасен!!!Хуже общежития, чем в МАУ - я не видел, там ползают тараканы, а еще меня оскорбил охранник!",
+    #             "post_url" : "https://vk.com/wall-184888396_23930",
+    #             "post_date" : str(int(datetime.datetime.strptime("2022.06.24 11:18:00", '%Y.%m.%d %H:%M:%S').timestamp())),
+    #             "sid" : 181923765,
+    #             "parse_date" : str(int(datetime.datetime.now().timestamp())),
+    #             "likes" : 100,
+    #             "views" : 10000000,
+    #             "comments" : 50,
+    #             "reposts" : 30
+                  
+    #         },
+            {
+               "pid" : 16,
+                "text" : "Двоих студентов журфака МАУ отчислили и пятерым объявили выговор из-за «недопустимого поведения в публичном пространстве», сообщил РБК пресс-секретарь факультета Андрей Кленин",
+                "post_url" : "https://vk.com/wall-25232578_12924287",
                 "post_date" : str(int(datetime.datetime.strptime("2022.06.24 11:18:00", '%Y.%m.%d %H:%M:%S').timestamp())),
                 "sid" : 181923765,
                 "parse_date" : str(int(datetime.datetime.now().timestamp())),
-                "likes" : 100,
-                "views" : 10000000,
-                "comments" : 50,
-                "reposts" : 30
-                  
+                "likes" : 0,
+                "views" : 0,
+                "comments" : 0,
+                "reposts" : 0 
+            },
+            {
+               "pid" : 17,
+                "text" : "Ведущему ученому химико-биологического кластера при МАУ предъявлено хищение 20 млн рублей при исследовании лекарства для онкобольных. Уголовное дело касается сложной вакцины и обычных мышей. Подробности стали известны «Фонтанке» 12 сентября.",
+                "post_url" : "https://www.fontanka.ru/2024/09/12/74078726/",
+                "post_date" : str(int(datetime.datetime.strptime("2022.06.24 11:18:00", '%Y.%m.%d %H:%M:%S').timestamp())),
+                "sid" : 181923765,
+                "parse_date" : str(int(datetime.datetime.now().timestamp())),
+                "likes" : 0,
+                "views" : 0,
+                "comments" : 0,
+                "reposts" : 0 
+            },
+            {
+               "pid" : 18,
+                "text" : "Не так давно на должность проректора по организационно-хозяйственной работе был назначен человек с выдающимися управленческими качествами - Станислав Сергеевич Владимиров, имеющий судимость за самоуправство в 1996 году в Краснодарском крае.Возникают вопросы к службе безопастности МАУ, каким образом человек имеющий пятно в своей биографии прошел проверку и был с легкостью допущен к работе, предполагающую в том числе и работу со студентами.ВЧК-ОГПУ поинтересовался у коллег нового проректора его управленческими качествами, и, сходу, выяснил следующее: Владимиров С. С., в связке с другими высокопоставленными сотрудниками университета, действует в интересах ряда коммерческих структур. Действует с целью личного обогащения, но во вред серьезной научно-образовательной организации с авторитетом как в России, так и за ее пределами.",
+                "post_url" : "https://glvk.net/articles/204016-v_cankt-peterburgskom_politehnicheskom_universitete_petra_velikogo_zreet_novyj_skandal",
+                "post_date" : str(int(datetime.datetime.strptime("2022.06.24 11:18:00", '%Y.%m.%d %H:%M:%S').timestamp())),
+                "sid" : 181923765,
+                "parse_date" : str(int(datetime.datetime.now().timestamp())),
+                "likes" : 0,
+                "views" : 0,
+                "comments" : 0,
+                "reposts" : 0 
+            },
+            {
+               "pid" : 19,
+                "text" : "В МАУ скандал из-за «каталога первокурсниц» с сексистскими оскорблениями.По университетским чатам разошелся список первокурсниц, в котором были личные данные поступивших в вуз и сексистские оценки от неких «судей».",
+                "post_url" : "https://moskvichmag.ru/gorod/v-baumanke-skandal-iz-za-kataloga-pervokursnits-s-seksistskimi-oskorbleniyami/",
+                "post_date" : str(int(datetime.datetime.strptime("2022.06.24 11:18:00", '%Y.%m.%d %H:%M:%S').timestamp())),
+                "sid" : 181923765,
+                "parse_date" : str(int(datetime.datetime.now().timestamp())),
+                "likes" : 0,
+                "views" : 0,
+                "comments" : 0,
+                "reposts" : 0 
+            },
+            {
+               "pid" : 20,
+                "text" : "  ",
+                "post_url" : "https://regions.ru/mytischi/proisshestviya/chetveryh-prepodavateley-filiala-baumanki-v-podmoskove-poymali-na-vzyatkah",
+                "post_date" : str(int(datetime.datetime.strptime("2022.06.24 11:18:00", '%Y.%m.%d %H:%M:%S').timestamp())),
+                "sid" : 181923765,
+                "parse_date" : str(int(datetime.datetime.now().timestamp())),
+                "likes" : 0,
+                "views" : 0,
+                "comments" : 0,
+                "reposts" : 0 
             }
             ])
 

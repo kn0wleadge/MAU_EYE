@@ -24,17 +24,6 @@ class Publication(Base):
     comments = mapped_column(Integer)
     reposts = mapped_column(Integer)
     source = relationship("Source", backref="publications")
-    def __str__(self):
-        return (
-            f"Publication(pid={self.pid}, "
-            f"ptext='{self.ptext[:50]}', "
-            f"url={self.purl}, "
-            f"pdate='{self.pdate}...', "  # Первые 50 символов текста
-            f"psource='{self.psource}', "
-            f"parse_date='{self.parse_date}',"
-            f"assesment= '{self.assesment}',"
-            f"mau_mentioned={self.mau_mentioned})"
-        )
 
 class Source(Base):
     __tablename__ = "Sources"

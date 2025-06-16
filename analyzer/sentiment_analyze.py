@@ -1,25 +1,26 @@
-
 import torch
-from transformers import AutoModelForSequenceClassification
-from transformers import BertTokenizerFast
-import logging
-tokenizer = BertTokenizerFast.from_pretrained('blanchefort/rubert-base-cased-sentiment-rusentiment')
-model = AutoModelForSequenceClassification.from_pretrained('blanchefort/rubert-base-cased-sentiment-rusentiment', return_dict=True)
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
+
+tokenizer = AutoTokenizer.from_pretrained('seara/rubert-tiny2-russian-sentiment')
+model = AutoModelForSequenceClassification.from_pretrained('seara/rubert-tiny2-russian-sentiment', return_dict=True)
 
 @torch.no_grad()
-def predict(text:str):
-
+def predict(text: str):
     inputs = tokenizer(text, max_length=512, padding=True, truncation=True, return_tensors='pt')
     outputs = model(**inputs)
-    predicted = torch.nn.functional.softmax(outputs.logits, dim=1)
-    predicted = torch.argmax(predicted, dim=1).numpy()
-    result = {"value" : predicted, "assesment" : None}
+    predicted_probs = torch.nn.functional.softmax(outputs.logits, dim=1)
+    predicted = torch.argmax(predicted_probs, dim=1).numpy()
+    
+    result = {"value": predicted, "assesment": None}
     if predicted == 0:
-        result["assesment" ]= "neutral"
+        result["assesment"] = "negative"
     elif predicted == 1:
+        result["assesment"] = "neutral"
+    elif predicted == 2:
         result["assesment"] = "positive"
     else:
-        result['assesment'] = "negative"
+        result["assesment"] = "unknown"
+    
     return result
 
 if __name__ == "__main__":
