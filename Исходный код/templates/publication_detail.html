@@ -40,7 +40,7 @@
                                         {% elif publication.source.source_type == 'tg' %}
                                             <img src="{{ url_for('static', filename='icons/telegram.png') }}" alt="telegram" width="24" class="me-2">
                                         {% elif publication.source.source_type == 'website' %}
-                                            <img src="{{ url_for('static', filename='icons/website.png') }}" alt="website" width="24" class="me-2">
+                                            <img src="{{ url_for('static', filename='icons/web.png') }}" alt="website" width="24" class="me-2">
                                         {% endif %}
                                         <p class="mb-0 fw-medium">{{ publication.source.sname }}</p>
                                     </div>

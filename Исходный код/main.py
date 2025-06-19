@@ -20,13 +20,14 @@ import parser.async_website_parsers as website_parsers
 from parser.async_website_parsers import parse_multiple_news_async
 from database.models import async_main, async_session, Publication, Source
 from database.queries import insert_vk_post,insert_publication, add_assesment,get_all_active_tg_sources, get_last_publications,get_all_active_vk_sources, add_mention, all_users, get_keywords, add_keyword_in_publication, get_publications_keyword
-from database.queries import get_all_active_websites_sources
 from tgbot.bot import run_bot, send_negative_publication_notification
 from analyzer.publication_processor import get_assesment, check_university_mentions, check_keyword_mentions
 from analyzer.sentiment_analyze import predict
-from parser.websites_parser import parse_big_radio_news, parse_hibiny_news, parse_tv21news_info
+#request = f"https://api.vk.com/method/wall.get?access_token={os.getenv("VK_API_TOKEN")}&v={os.getenv("VK_API_VERSION")}&domain={domain}"
 
-import random
+
+
+
 
 
 
@@ -35,24 +36,12 @@ import random
 #print(data)
 async def parse_publications():
     print("Starting parsing...")
-    website_sources = await get_all_active_websites_sources()
-    news = []
-    for source in website_sources:
-        if source["sname"] == "Хибины.ру":
-            n = parse_hibiny_news()
-            news.extend(n)
-        elif source["sname"] == "Большое Радио":
-            n = parse_big_radio_news()
-            news.extend(n)
-        else:
-            n = parse_tv21news_info()
-    
     vk_sources = await get_all_active_vk_sources()
     print(f"vk sources - {len(vk_sources)}")
-    posts = await vk_parser.parse_vk(15,vk_sources)
+    posts = await vk_parser.parse_vk(100,vk_sources)
     tg_sources = await get_all_active_tg_sources()
     print(f"tg sources - {len(tg_sources)}")
-    tg_posts = await parse_tg_async(1, tg_sources)
+    tg_posts = await parse_tg_async(30, tg_sources)
     for post in posts:
         await insert_publication(pid = post["pid"],
                                  text = post["text"],
@@ -76,20 +65,8 @@ async def parse_publications():
                            likes = post["likes"],
                            comments = post["comments"],
                            reposts = post["reposts"])
-    for n in news:
-        await insert_publication(pid = int(time.time() * 1000) + random.randint(0, 999),
-                                 text=n["text"],
-                           url=n['post_url'],
-                           post_date=n['post_date'],
-                           sid=n['sid'],
-                           parse_date=n['parse_date'],
-                           views = n["views"],
-                           likes = n["likes"],
-                           comments = n["comments"],
-                           reposts = n["reposts"])
     print(f"Собрано {len(posts)} публикаций ВК")
     print(f"Собрано {len(tg_posts)} публикаций ТГ")
-    print(f"Собрано {len(news)} публикаций с Вебсайтов")
 
 async def analyze_and_notify():
     """Анализ публикаций и отправка уведомлений"""

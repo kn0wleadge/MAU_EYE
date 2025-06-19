@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="alert alert-success">
+    <h4 class="alert-heading">Отчет успешно сгенерирован!</h4>
+    <p> {{ 'Отчет за последний месяц' if 'month' in request.url else 'Отчет за последнюю неделю' }} готов.</p>
+    <hr>
+    <a href="/static/reports/{{ filename }}" class="btn btn-primary" download>Скачать PDF</a>
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">На главную</a>
+</div>
+{% endblock %}

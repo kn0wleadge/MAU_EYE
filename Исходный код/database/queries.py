@@ -227,19 +227,6 @@ async def get_all_active_tg_sources():
                                "is_active":row.is_active,
                                "added_date":row.added_date})
         return sources
-async def get_all_active_websites_sources():
-    async with async_session() as session:
-        result = (await session.execute(select(Source).where((Source.is_active == True) & (Source.source_type == 'website') & (Source.deleted == False)))).scalars().all()
-        sources = []
-        for row in result:
-                sources.append({"sid":row.sid,
-                               "sname":row.sname,
-                               "surl":row.surl,
-                               "sdomain":row.sdomain,
-                               "source_type":row.source_type,
-                               "is_active":row.is_active,
-                               "added_date":row.added_date})
-        return sources
 async def test():
     list = await get_publications_keyword(2102746)
     print(list)
