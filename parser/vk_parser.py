@@ -127,7 +127,7 @@ async def parse_vk(posts, sources:list):
                 "sid" : source['sid'],
                 "parse_date" : parse_date,
                 "likes" : group_posts[i]["likes"]["count"],
-                "views" : group_posts[i]["views"]["count"],
+                "views" : group_posts[i]["views"]["count"] if "views" in group_posts[i] else 0,
                 "comments" : group_posts[i]["comments"]["count"],
                 "reposts" : group_posts[i]["reposts"]["count"]
             }

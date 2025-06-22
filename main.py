@@ -49,10 +49,10 @@ async def parse_publications():
     
     vk_sources = await get_all_active_vk_sources()
     print(f"vk sources - {len(vk_sources)}")
-    posts = await vk_parser.parse_vk(15,vk_sources)
+    posts = await vk_parser.parse_vk(80,vk_sources)
     tg_sources = await get_all_active_tg_sources()
     print(f"tg sources - {len(tg_sources)}")
-    tg_posts = await parse_tg_async(1, tg_sources)
+    tg_posts = await parse_tg_async(10, tg_sources)
     for post in posts:
         await insert_publication(pid = post["pid"],
                                  text = post["text"],
